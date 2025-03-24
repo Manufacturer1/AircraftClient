@@ -16,6 +16,93 @@ import Planner from "../components/plannerComponent";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState } from "react";
 import FlightModal from "../components/flightDetailsModalComponent";
+import windPowerIcon from "../images/windPowerIcon.svg";
+import cactusIcon from "../images/cactus.svg";
+import forestIcon from "../images/forest.svg";
+import cloudIcon from "../images/soundCloud.svg";
+
+const flightsInfo = [
+  {
+    airlineIcon: windPowerIcon,
+    airlineBgColor: "bg-[#6ECFBDFF]",
+    airlineName: "HorizonJet",
+    bagCapacity: 23,
+    flightDepartureTime: "10:25 PM",
+    flightArrivalTime: "07:06 AM",
+    flightPrice: 275.5,
+    stopsNumber: 1,
+  },
+  {
+    airlineIcon: forestIcon,
+    airlineBgColor: "bg-[#FF912BFF]",
+    airlineName: "Altitude Airways",
+    bagCapacity: 23,
+    flightDepartureTime: "06:30 AM",
+    flightArrivalTime: "07:55 AM",
+    flightPrice: 206,
+    stopsNumber: 1,
+  },
+  {
+    airlineIcon: cloudIcon,
+    airlineBgColor: "bg-[#0D78C9FF]",
+    airlineName: "Cloudy Airlines",
+    bagCapacity: 23,
+    flightDepartureTime: "01:19 PM",
+    flightArrivalTime: "02:45 PM",
+    flightPrice: 148.5,
+    stopsNumber: 1,
+  },
+  {
+    airlineIcon: cloudIcon,
+    airlineBgColor: "bg-[#0D78C9FF]",
+    airlineName: "Cloudy Airlines",
+    bagCapacity: 23,
+    flightDepartureTime: "06:13 PM",
+    flightArrivalTime: "07:40 PM",
+    flightPrice: 380.15,
+    stopsNumber: 1,
+  },
+  {
+    airlineIcon: forestIcon,
+    airlineBgColor: "bg-[#FF912BFF]",
+    airlineName: "Altitude Airways",
+    bagCapacity: 23,
+    flightDepartureTime: "06:20 AM",
+    flightArrivalTime: "07:46 AM",
+    flightPrice: 269.1,
+    stopsNumber: 2,
+  },
+  {
+    airlineIcon: windPowerIcon,
+    airlineBgColor: "bg-[#6ECFBDFF]",
+    airlineName: "HorizonJet",
+    bagCapacity: 23,
+    flightDepartureTime: "7:25 PM",
+    flightArrivalTime: "08:45 PM",
+    flightPrice: 549.1,
+    stopsNumber: 0,
+  },
+  {
+    airlineIcon: windPowerIcon,
+    airlineBgColor: "bg-[#6ECFBDFF]",
+    airlineName: "HorizonJet",
+    bagCapacity: 23,
+    flightDepartureTime: "06:01 AM",
+    flightArrivalTime: "07:28 AM",
+    flightPrice: 200.5,
+    stopsNumber: 0,
+  },
+  {
+    airlineIcon: cactusIcon,
+    airlineBgColor: "bg-[#E5343AFF]",
+    airlineName: "FlyScape",
+    bagCapacity: 23,
+    flightDepartureTime: "08:40 AM",
+    flightArrivalTime: "10:00 AM",
+    flightPrice: 549.1,
+    stopsNumber: 0,
+  },
+];
 
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
@@ -30,7 +117,6 @@ const FlightList = () => {
       document.body.style.overflow = "auto";
     }
 
-    // Cleanup function
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -101,7 +187,10 @@ const FlightList = () => {
 
           {/*Calendar planner */}
           <div className="mb-10">
-            <Planner handleModalOpen={handleModalOpen} />
+            <Planner
+              handleModalOpen={handleModalOpen}
+              flightsInfo={flightsInfo}
+            />
           </div>
           {/*Pagination */}
           <div className="mb-16 flex justify-end">
@@ -147,7 +236,11 @@ const FlightList = () => {
 
       {/*Modal Flight Details Modal*/}
       <section className="z-20">
-        <FlightModal openModal={openModal} setModalOpen={setModalOpen} />
+        <FlightModal
+          openModal={openModal}
+          setModalOpen={setModalOpen}
+          flightDetails={flightsInfo[2]}
+        />
       </section>
     </section>
   );
