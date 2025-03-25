@@ -6,6 +6,7 @@ import videoPlayerIcon from "../images/videoplayer.svg";
 import usbIcon from "../images/usb.svg";
 import InfoAlert from "./infoComponent";
 import shareIcon from "../images/share.svg";
+import FlightBenefits from "./flightBenefitsComponent";
 
 const travelInfo = [
   {
@@ -45,9 +46,39 @@ const travelInfo = [
   },
 ];
 
+const priceDetails = {
+  tax: true,
+  totalPrice: 150.0,
+  discount: 1.5,
+  adultFee: 150.0,
+};
+
 const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
   const modalRef = useRef(null);
   const [option, setOption] = useState(0);
+
+  const benefits = [
+    {
+      refundable: true,
+      reschedule: true,
+      classType: travelInfo[0].classType,
+      departureCity: travelInfo[0].departureCity,
+      arrivalCity: travelInfo[0].arrivalCity,
+      airlineIcon: flightDetails.airlineIcon,
+      airlineBgColor: flightDetails.airlineBgColor,
+      airlineName: flightDetails.airlineName,
+    },
+    {
+      refundable: true,
+      reschedule: true,
+      classType: travelInfo[1].classType,
+      departureCity: travelInfo[1].departureCity,
+      arrivalCity: travelInfo[1].arrivalCity,
+      airlineIcon: flightDetails.airlineIcon,
+      airlineBgColor: flightDetails.airlineBgColor,
+      airlineName: flightDetails.airlineName,
+    },
+  ];
 
   const modalOptions = [
     {
@@ -151,7 +182,7 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
       {/*Modal*/}
       <div
         ref={modalRef}
-        className={`fixed top-0 right-0
+        className={`flex flex-col fixed top-0 right-0
            w-[47%] h-full bg-white z-20 
            shadow-lg transition-transform
             duration-300 
@@ -179,7 +210,7 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
           />
         </div>
         {/*Modal options*/}
-        <div className="flex gap-12 mb-6 p-4 pb-0">
+        <div className="flex gap-12 mb-5 p-4 pb-0">
           {modalOptions.map((item, index) => (
             <div
               onClick={() => setOption(index)}
@@ -207,21 +238,29 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
             </div>
           ))}
         </div>
-        {/*Flight details*/}
-        <div className="flex flex-col gap-16 mb-5 bg-[#FAFAFBFF] p-4 pb-14">
-          <FlightDetails
-            flightDetails={flightDetails}
-            travelInfo={travelInfo[0]}
-          />
-          <InfoAlert city={travelInfo[0].arrivalCity} time={"02:00 PM"} />
-          <FlightDetails
-            flightDetails={flightDetails}
-            travelInfo={travelInfo[1]}
-          />
-        </div>
+        {/*Flight details section*/}
+        {option === 0 && (
+          <div className="flex flex-col gap-16 mb-5 bg-[#FAFAFBFF] p-4 pb-14">
+            <FlightDetails
+              flightDetails={flightDetails}
+              travelInfo={travelInfo[0]}
+            />
+            <InfoAlert city={travelInfo[0].arrivalCity} time={"02:00 PM"} />
+            <FlightDetails
+              flightDetails={flightDetails}
+              travelInfo={travelInfo[1]}
+            />
+          </div>
+        )}
+        {/*Flight benefits*/}
+        {option == 1 && (
+          <div className="p-4 bg-[#F8F9FAFF]">
+            <FlightBenefits benefits={benefits} priceDetails={priceDetails} />
+          </div>
+        )}
 
         {/* Price and book button*/}
-        <div className="flex justify-between items-center p-4">
+        <div className="flex justify-between items-center p-4 mt-auto">
           <h2 className="flex items-center gap-1 font-semibold text-2xl text-[#FF912BFF]">
             ${flightDetails.flightPrice}
             <span className="text-neutral-400 text-lg font-normal">/ pax</span>
