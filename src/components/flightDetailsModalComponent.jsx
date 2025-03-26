@@ -7,6 +7,7 @@ import usbIcon from "../images/usb.svg";
 import InfoAlert from "./infoComponent";
 import shareIcon from "../images/share.svg";
 import FlightBenefits from "./flightBenefitsComponent";
+import RefundOption from "./refundOptionComponent";
 
 const travelInfo = [
   {
@@ -77,6 +78,38 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
       airlineIcon: flightDetails.airlineIcon,
       airlineBgColor: flightDetails.airlineBgColor,
       airlineName: flightDetails.airlineName,
+    },
+  ];
+  const refundInfo = [
+    {
+      refundable: true,
+      classType: travelInfo[0].classType,
+      departureCity: travelInfo[0].departureCity,
+      arrivalCity: travelInfo[0].arrivalCity,
+      airlineIcon: flightDetails.airlineIcon,
+      airlineBgColor: flightDetails.airlineBgColor,
+      airlineName: flightDetails.airlineName,
+      refundReasons: [
+        "Self-cancellation",
+        "Sickness",
+        "Flight canceled by airline",
+        "Sickness",
+        "Flight canceled by airline",
+      ],
+    },
+    {
+      refundable: true,
+      classType: travelInfo[1].classType,
+      departureCity: travelInfo[1].departureCity,
+      arrivalCity: travelInfo[1].arrivalCity,
+      airlineIcon: flightDetails.airlineIcon,
+      airlineBgColor: flightDetails.airlineBgColor,
+      airlineName: flightDetails.airlineName,
+      refundReasons: [
+        "Self-cancellation",
+        "Sickness",
+        "Flight canceled by airline",
+      ],
     },
   ];
 
@@ -258,7 +291,12 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
             <FlightBenefits benefits={benefits} priceDetails={priceDetails} />
           </div>
         )}
-
+        {/*Flight Refund option*/}
+        {option == 2 && (
+          <div className="">
+            <RefundOption refundInfo={refundInfo} />
+          </div>
+        )}
         {/* Price and book button*/}
         <div className="flex justify-between items-center p-4 mt-auto">
           <h2 className="flex items-center gap-1 font-semibold text-2xl text-[#FF912BFF]">

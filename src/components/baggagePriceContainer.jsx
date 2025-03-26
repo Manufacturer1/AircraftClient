@@ -10,7 +10,9 @@ const BaggagePriceContainer = ({ benefit }) => {
           airlineIcon={benefit.airlineIcon}
           airlineName={benefit.airlineName}
         />
-        <img src={arrowOutwardIcon} alt="arrow outward" />
+        <button className="flex items-center justify-center">
+          <img src={arrowOutwardIcon} alt="arrow outward" />
+        </button>
       </div>
 
       <span className="text-sm text-neutral-500">
