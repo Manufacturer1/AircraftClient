@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Footer from "./components/footerComponent";
 import FlightList from "./pages/flightListing.jsx";
+import BookingPage from "./pages/bookingPage.jsx";
 
 function App() {
   return (
@@ -13,10 +14,11 @@ function App() {
           <NavBar />
         </div>
 
-        <div className="content ">
+        <div className="content flex-1">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/flights" element={<FlightList />} />
+            <Route path="/booking" element={<BookingPage />} />
           </Routes>
         </div>
 

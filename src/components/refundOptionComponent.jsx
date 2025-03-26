@@ -1,4 +1,4 @@
-import RefundPolicy from "./refundPolicyComponent";
+import PolicyContainer from "./policyContainerComponent";
 import { React, useState } from "react";
 import RefundDetails from "./refundDetailsComponent";
 
@@ -15,7 +15,7 @@ const RefundOption = ({ refundInfo }) => {
   return (
     <div className="flex">
       <div className="basis-[30%] bg-white ">
-        <RefundPolicy
+        <PolicyContainer
           options={options}
           selected={selected}
           setSelected={setSelected}

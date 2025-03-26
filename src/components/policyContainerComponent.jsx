@@ -1,4 +1,4 @@
-const RefundPolicy = ({ options, selected, setSelected }) => {
+const PolicyContainer = ({ options, selected, setSelected }) => {
   return (
     <div>
       <div className="flex flex-col pl-7 pt-2 gap-3">
@@ -28,4 +28,4 @@ const RefundPolicy = ({ options, selected, setSelected }) => {
   );
 };
 
-export default RefundPolicy;
+export default PolicyContainer;

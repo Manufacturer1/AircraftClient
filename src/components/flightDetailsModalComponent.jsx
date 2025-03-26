@@ -8,6 +8,8 @@ import InfoAlert from "./infoComponent";
 import shareIcon from "../images/share.svg";
 import FlightBenefits from "./flightBenefitsComponent";
 import RefundOption from "./refundOptionComponent";
+import RescheduleOption from "./rescheduleOptionComponent";
+import { Link } from "react-router-dom";
 
 const travelInfo = [
   {
@@ -109,6 +111,48 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
         "Self-cancellation",
         "Sickness",
         "Flight canceled by airline",
+      ],
+    },
+  ];
+
+  const rescheduleInfo = [
+    {
+      rescheduleAvailabe: true,
+      classType: travelInfo[0].classType,
+      departureCity: travelInfo[0].departureCity,
+      arrivalCity: travelInfo[0].arrivalCity,
+      airlineIcon: flightDetails.airlineIcon,
+      airlineBgColor: flightDetails.airlineBgColor,
+      airlineName: flightDetails.airlineName,
+      optionsToChange: {
+        "Departure time": true,
+        "Travel route": false,
+        Airline: false,
+      },
+
+      rescheduleGuides: [
+        "Easy reschedule is designed for changing flight dates",
+        "E-flight will notify you of the updated price for your new flight via email",
+        "The rescheduling procedure may require up to 45 minutes to complete",
+      ],
+    },
+    {
+      rescheduleAvailabe: true,
+      classType: travelInfo[1].classType,
+      departureCity: travelInfo[1].departureCity,
+      arrivalCity: travelInfo[1].arrivalCity,
+      airlineIcon: flightDetails.airlineIcon,
+      airlineBgColor: flightDetails.airlineBgColor,
+      airlineName: flightDetails.airlineName,
+      optionsToChange: {
+        "Departure time": true,
+        "Travel route": false,
+        Airline: false,
+      },
+      rescheduleGuides: [
+        "Easy reschedule is designed for changing flight dates",
+        "E-flight will notify you of the updated price for your new flight via email",
+        "The rescheduling procedure may require up to 45 minutes to complete",
       ],
     },
   ];
@@ -286,15 +330,20 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
           </div>
         )}
         {/*Flight benefits*/}
-        {option == 1 && (
+        {option === 1 && (
           <div className="p-4 bg-[#F8F9FAFF]">
             <FlightBenefits benefits={benefits} priceDetails={priceDetails} />
           </div>
         )}
         {/*Flight Refund option*/}
-        {option == 2 && (
-          <div className="">
+        {option === 2 && (
+          <div>
             <RefundOption refundInfo={refundInfo} />
+          </div>
+        )}
+        {option === 3 && (
+          <div>
+            <RescheduleOption rescheduleInfo={rescheduleInfo} />
           </div>
         )}
         {/* Price and book button*/}
@@ -317,7 +366,8 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
             >
               <img className="w-5" src={shareIcon} />
             </button>
-            <button
+            <Link
+              to="/booking"
               className="text-white
              w-32 h-11 bg-[#11D396FF]
              rounded-[28px] text-lg
@@ -329,7 +379,7 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
              "
             >
               Book now
-            </button>
+            </Link>
           </div>
         </div>
       </div>
