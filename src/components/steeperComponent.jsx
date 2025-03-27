@@ -4,7 +4,7 @@ const CustomStepper = ({ currentStep }) => {
   const steps = ["Booking", "Purchase", "Get your E-ticket"];
 
   return (
-    <div className="flex items-center justify-between w-full max-w-lg mx-auto">
+    <div className="flex w-full">
       {steps.map((step, index) => (
         <div key={index} className="flex-1 flex flex-col items-center relative">
           {/* Line Connector */}
@@ -27,7 +27,7 @@ const CustomStepper = ({ currentStep }) => {
 
           {/* Step Label */}
           <span
-            className={`mt-2 text-sm font-medium ${
+            className={`mt-2 text-base font-medium ${
               index <= currentStep ? "text-green-500" : "text-gray-500"
             }`}
           >
