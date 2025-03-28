@@ -57,6 +57,8 @@ const Home = () => {
                 title={"1"}
                 textColor={"text-blue-600"}
                 options={["1", "2", "3", "4", "5"]}
+                hover={"hover:bg-[#CECEFFFF]"}
+                hoverActive={"hover:active:bg-[#ADADFFFF]"}
               />
 
               <DropDown
@@ -66,6 +68,8 @@ const Home = () => {
                 title={"Enonomy"}
                 textColor={"text-blue-600"}
                 options={["Economy", "Buisness Class"]}
+                hover={"hover:bg-[#CECEFFFF]"}
+                hoverActive={"hover:active:bg-[#ADADFFFF]"}
               />
             </div>
             <div className="mb-5">

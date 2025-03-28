@@ -25,7 +25,9 @@ const PassengerInput = ({
         />
 
         {rightIcon && (
-          <span className="absolute right-3 text-neutral-500">{rightIcon}</span>
+          <span className="absolute right-3 text-neutral-500 w-6 h-6">
+            {rightIcon}
+          </span>
         )}
       </div>
     </div>

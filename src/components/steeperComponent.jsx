@@ -11,7 +11,7 @@ const CustomStepper = ({ currentStep }) => {
           {index !== 0 && (
             <div
               className={`absolute top-1.5 left-[-50%] w-full h-1 ${
-                index <= currentStep ? "bg-green-400" : "bg-gray-300"
+                index <= currentStep ? "bg-[#0EA776FF]" : "bg-gray-300"
               }`}
             />
           )}
@@ -20,7 +20,7 @@ const CustomStepper = ({ currentStep }) => {
           <div
             className={`w-4 h-4 z-10 rounded-full flex items-center justify-center border-2 ${
               index <= currentStep
-                ? "bg-green-400 border-green-400"
+                ? "bg-[#11D396FF] border-[#11D396FF]"
                 : "bg-gray-300 border-gray-300"
             }`}
           ></div>
@@ -28,7 +28,7 @@ const CustomStepper = ({ currentStep }) => {
           {/* Step Label */}
           <span
             className={`mt-2 text-base font-medium ${
-              index <= currentStep ? "text-green-500" : "text-gray-500"
+              index <= currentStep ? "text-[#11D396FF]" : "text-gray-500"
             }`}
           >
             {step}

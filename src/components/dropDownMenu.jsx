@@ -8,6 +8,8 @@ export default function DropDown({
   options,
   textColor,
   iconSizes,
+  hover,
+  hoverActive,
 }) {
   const [selected, setSelected] = useState(title);
   const [open, setOpen] = useState(false);
@@ -29,7 +31,7 @@ export default function DropDown({
   return (
     <div
       ref={dropdownRef}
-      className={`relative ${bgColor} px-3  py-2 rounded-full flex items-center gap-2 cursor-pointer`}
+      className={`relative ${bgColor} px-3 ${hover} ${hoverActive} transition-all duration-150 py-2 rounded-full flex items-center gap-2 cursor-pointer`}
       onClick={() => setOpen(!open)}
     >
       {icon && (
