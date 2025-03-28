@@ -144,10 +144,16 @@ const FlightList = () => {
                 textColor={"text-neutral-700"}
                 bgColor={"bg-[#F3F4F6FF]"}
                 options={["One way", "Round trip"]}
+                hover={"hover:bg-[#CFD2DAFF]"}
+                hoverActive={"hover:active:bg-[#A7ADB7FF]"}
               />
             </div>
             <div>
-              <button className="flex items-center px-3 py-2 bg-[#F3F4F6FF] rounded-[18px] justify-center gap-1">
+              <button
+                className="flex items-center hover:bg-[#CFD2DAFF]
+               hover:active:bg-[#A7ADB7FF] transition-all duration-150 px-3 py-2
+                bg-[#F3F4F6FF] rounded-[18px] justify-center gap-1"
+              >
                 <img src={meetingIcon} />
                 <span>1</span>
               </button>
@@ -160,6 +166,8 @@ const FlightList = () => {
                 arrowIcon={dropDownIcon}
                 bgColor={"bg-[#F3F4F6FF]"}
                 options={["Economy", "First Class"]}
+                hover={"hover:bg-[#CFD2DAFF]"}
+                hoverActive={"hover:active:bg-[#A7ADB7FF]"}
               />
             </div>
           </div>
