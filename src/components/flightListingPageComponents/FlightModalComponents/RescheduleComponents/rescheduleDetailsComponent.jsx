@@ -1,8 +1,8 @@
-import checkIcon from "../images/check.svg";
-import simpleCheckIcon from "../images/simpleCheck.svg";
-import removeIcon from "../images/negativeReschedule.svg";
-import AirlineIcon from "./airlineIconComponent";
-import flightArrivalIcon from "../images/flightArrival.svg";
+import checkIcon from "../../../../images/check.svg";
+import simpleCheckIcon from "../../../../images/simpleCheck.svg";
+import removeIcon from "../../../../images/negativeReschedule.svg";
+import AirlineIcon from "../../../generalUseComponents/airlineIconComponent";
+import flightArrivalIcon from "../../../../images/flightArrival.svg";
 
 const RescheduleDetails = ({ rescheduleInfo }) => {
   return (

@@ -1,5 +1,5 @@
 import cloudIcon from "../images/soundCloud.svg";
-import Ticket from "../components/ticketComponent";
+import Ticket from "../components/BookingPageComponents/TicketStepComponents/ticketComponent";
 const ticketInfo = [
   {
     airlineIcon: cloudIcon,

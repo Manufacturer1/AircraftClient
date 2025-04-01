@@ -2,8 +2,8 @@ import creditCardIcon from "../images/creditCard.svg";
 import visaCardIcon from "../images/visaCard.svg";
 import masterCardIcon from "../images/masterCard.svg";
 import amexCardIcon from "../images/amexCard.svg";
-import PassengerInput from "../components/passengerInputField";
-import InfoIcon from "../components/infoIconComponent";
+import PassengerInput from "../components/generalUseComponents/passengerInputField";
+import InfoIcon from "../components/generalUseComponents/infoIconComponent";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 

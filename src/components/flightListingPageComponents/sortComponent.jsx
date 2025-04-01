@@ -1,5 +1,5 @@
-import sortIcon from "../images/sortIcon.svg";
-import chevronUpIcon from "../images/chevronUp.svg";
+import sortIcon from "../../images/sortIcon.svg";
+import chevronUpIcon from "../../images/chevronUp.svg";
 import PriceFilter from "./priceFilterComponent";
 
 const SortTable = () => {

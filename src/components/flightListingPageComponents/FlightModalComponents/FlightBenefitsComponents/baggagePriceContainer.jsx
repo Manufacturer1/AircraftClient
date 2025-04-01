@@ -1,5 +1,5 @@
-import AirlineIcon from "./airlineIconComponent";
-import arrowOutwardIcon from "../images/arrowOutword.svg";
+import AirlineIcon from "../../../generalUseComponents/airlineIconComponent";
+import arrowOutwardIcon from "../../../../images/arrowOutword.svg";
 
 const BaggagePriceContainer = ({ benefit }) => {
   return (

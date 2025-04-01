@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { registerUser, loginUser } from "../services/authService";
-import { useAuth } from "../context/authContext";
+import { registerUser, loginUser } from "../../services/authService";
+import { useAuth } from "../../context/authContext";
 
 const LoginModal = ({ openModal, setModalOpen }) => {
   const { login } = useAuth();

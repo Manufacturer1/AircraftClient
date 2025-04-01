@@ -1,6 +1,6 @@
-import bagIcon from "../images/bagIcon.svg";
-import flightDepartureIcon from "../images/flightDeparture.svg";
-import timeLapseIcon from "../images/timeLapseIcon.svg";
+import bagIcon from "../../../images/bagIcon.svg";
+import flightDepartureIcon from "../../../images/flightDeparture.svg";
+import timeLapseIcon from "../../../images/timeLapseIcon.svg";
 
 const FlightComponent = ({
   airlineIcon,

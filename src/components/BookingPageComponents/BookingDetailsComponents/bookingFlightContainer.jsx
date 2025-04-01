@@ -1,5 +1,5 @@
 import BookingFlightDetails from "./bookingFlightDetails";
-import airplaneIcon from "../images/airplane.svg";
+import airplaneIcon from "../../../images/airplane.svg";
 
 const BookingFlightContainer = ({
   bookingFlightDetails,

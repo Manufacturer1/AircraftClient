@@ -1,6 +1,6 @@
-import AirlineIcon from "./airlineIconComponent";
-import checkIcon from "../images/check.svg";
-import flightArrivalIcon from "../images/flightArrival.svg";
+import AirlineIcon from "../../../generalUseComponents/airlineIconComponent";
+import checkIcon from "../../../../images/check.svg";
+import flightArrivalIcon from "../../../../images/flightArrival.svg";
 
 const RefundDetails = ({ refundInfo }) => {
   return (

@@ -1,4 +1,4 @@
-import PolicyContainer from "./policyContainerComponent";
+import PolicyContainer from "../../../generalUseComponents/policyContainerComponent";
 import { React, useState } from "react";
 import RefundDetails from "./refundDetailsComponent";
 

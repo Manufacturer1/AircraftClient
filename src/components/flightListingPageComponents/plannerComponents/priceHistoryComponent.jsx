@@ -1,5 +1,5 @@
-import shopingIcon from "../images/shopingTag.svg";
-import chevronDownLarge from "../images/chevronDownLarge.svg";
+import shopingIcon from "../../../images/shopingTag.svg";
+import chevronDownLarge from "../../../images/chevronDownLarge.svg";
 
 const PriceHistory = () => {
   return (

@@ -1,7 +1,7 @@
-import ticketIcon from "../images/ticketContainer.svg";
-import workBagIcon from "../images/workBag.svg";
-import AirlineIcon from "./airlineIconComponent";
-import flightArrivalIcon from "../images/flightArrival.svg";
+import ticketIcon from "../../../images/ticketContainer.svg";
+import workBagIcon from "../../../images/workBag.svg";
+import AirlineIcon from "../../generalUseComponents/airlineIconComponent";
+import flightArrivalIcon from "../../../images/flightArrival.svg";
 
 const Ticket = ({ ticketInfo }) => {
   const parseDay = (date) => {

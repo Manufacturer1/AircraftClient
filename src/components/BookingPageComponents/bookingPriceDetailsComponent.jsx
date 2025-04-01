@@ -1,4 +1,4 @@
-import dollarIcon from "../images/dollar.svg";
+import dollarIcon from "../../images/dollar.svg";
 
 const BookingPriceDetails = ({ priceDetails }) => {
   return (

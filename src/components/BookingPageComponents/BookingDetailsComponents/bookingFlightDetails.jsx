@@ -1,7 +1,7 @@
-import AirlineIcon from "./airlineIconComponent";
-import flightArrivalIcon from "../images/flightArrival.svg";
+import AirlineIcon from "../../generalUseComponents/airlineIconComponent";
+import flightArrivalIcon from "../../../images/flightArrival.svg";
 import DateContainer from "./dateContainerComponent";
-import dollarIcon from "../images/dollar.svg";
+import dollarIcon from "../../../images/dollar.svg";
 
 const BookingFlightDetails = ({ bookingFlightDetails }) => {
   const parseTime = (time) => {

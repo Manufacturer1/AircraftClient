@@ -1,5 +1,5 @@
-import filterIcon from "../images/filterIcon.svg";
-import chevronUpIcon from "../images/chevronUp.svg";
+import filterIcon from "../../images/filterIcon.svg";
+import chevronUpIcon from "../../images/chevronUp.svg";
 import { Checkbox, FormControlLabel } from "@mui/material";
 import { useState } from "react";
 import HourSlider from "./hourSlideComponent";

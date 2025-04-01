@@ -1,8 +1,8 @@
-import logo from "../images/logo.svg";
+import logo from "../../images/logo.svg";
 import SubscribeField from "./subscribeComponent";
-import facebookIcon from "../images/facebookIcon.svg";
-import twitterIcon from "../images/twitter.svg";
-import instagramIcon from "../images/instagram.svg";
+import facebookIcon from "../../images/facebookIcon.svg";
+import twitterIcon from "../../images/twitter.svg";
+import instagramIcon from "../../images/instagram.svg";
 
 const Footer = () => {
   const footerInfo = [

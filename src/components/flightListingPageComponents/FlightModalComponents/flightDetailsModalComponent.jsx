@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import iconCloseModal from "../images/closeModal.svg";
-import FlightDetails from "./flightDetailsComponent";
-import cutleryIcon from "../images/cutlery.svg";
-import videoPlayerIcon from "../images/videoplayer.svg";
-import usbIcon from "../images/usb.svg";
-import InfoAlert from "./infoComponent";
-import shareIcon from "../images/share.svg";
-import FlightBenefits from "./flightBenefitsComponent";
-import RefundOption from "./refundOptionComponent";
-import RescheduleOption from "./rescheduleOptionComponent";
+import iconCloseModal from "../../../images/closeModal.svg";
+import FlightDetails from "./FlightDetailsComponents/flightDetailsComponent";
+import cutleryIcon from "../../../images/cutlery.svg";
+import videoPlayerIcon from "../../../images/videoplayer.svg";
+import usbIcon from "../../../images/usb.svg";
+import InfoAlert from "./FlightDetailsComponents/infoComponent";
+import shareIcon from "../../../images/share.svg";
+import FlightBenefits from "./FlightBenefitsComponents/flightBenefitsComponent";
+import RefundOption from "./RefundComponents/refundOptionComponent";
+import RescheduleOption from "./RescheduleComponents/rescheduleOptionComponent";
 import { Link } from "react-router-dom";
 
 const travelInfo = [

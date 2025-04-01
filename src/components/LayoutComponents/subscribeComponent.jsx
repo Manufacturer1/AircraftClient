@@ -1,4 +1,4 @@
-import envellopeIcon from "../images/envellope.svg";
+import envellopeIcon from "../../images/envellope.svg";
 
 const SubscribeField = () => {
   return (

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { decodeToken } from "../utils/token";
+import { decodeToken, getTokenExpiration } from "../utils/token";
 
 const AuthContext = createContext();
 
@@ -10,17 +10,47 @@ export const AuthProvider = ({ children }) => {
     user: null,
   });
 
+  const isTokenValid = (token) => {
+    if (!token) return false;
+    const expiration = getTokenExpiration(token);
+    return expiration ? Date.now() < expiration : false;
+  };
+
+  useEffect(() => {
+    if (!authState.token) return;
+
+    const expiration = getTokenExpiration(authState.token);
+    if (!expiration) {
+      logout();
+      return;
+    }
+
+    const timeLeft = expiration - Date.now();
+    if (timeLeft <= 0) {
+      logout();
+      return;
+    }
+
+    const logoutTimer = setTimeout(logout, timeLeft);
+    return () => clearTimeout(logoutTimer);
+  }, [authState.token]);
+
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-
-    if (token) {
+    if (token && isTokenValid(token)) {
       login(token);
+    } else {
+      logout();
     }
   }, []);
 
   const login = (token) => {
-    const decoded = decodeToken(token);
+    if (!isTokenValid(token)) {
+      logout();
+      return;
+    }
 
+    const decoded = decodeToken(token);
     localStorage.setItem("authToken", token);
     setAuthState({
       token,
@@ -49,6 +79,7 @@ export const AuthProvider = ({ children }) => {
       ...authState,
       login,
       logout,
+      isTokenExpired: () => !isTokenValid(authState.token),
     }),
     [authState]
   );

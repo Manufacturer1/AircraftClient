@@ -1,11 +1,11 @@
 import { use, useState } from "react";
-import CustomStepper from "../components/steeperComponent";
-import BookingPriceDetails from "../components/bookingPriceDetailsComponent";
+import CustomStepper from "../components/BookingPageComponents/steeperComponent";
+import BookingPriceDetails from "../components/BookingPageComponents/bookingPriceDetailsComponent";
 import windPowerIcon from "../images/windPowerIcon.svg";
 import cactusIcon from "../images/cactus.svg";
 import forestIcon from "../images/forest.svg";
 import cloudIcon from "../images/soundCloud.svg";
-import BookingFlightContainer from "../components/bookingFlightContainer";
+import BookingFlightContainer from "../components/BookingPageComponents/BookingDetailsComponents/bookingFlightContainer";
 import PurchaseStep from "./purchaseStep";
 import BookingStep from "./bookingStep";
 import TicketStep from "./ticketGenerationStep";

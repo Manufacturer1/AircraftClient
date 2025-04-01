@@ -1,5 +1,5 @@
 import { useState } from "react";
-import PolicyContainer from "./policyContainerComponent";
+import PolicyContainer from "../../../generalUseComponents/policyContainerComponent";
 import RescheduleDetails from "./rescheduleDetailsComponent";
 
 const RescheduleOption = ({ rescheduleInfo }) => {

@@ -1,5 +1,5 @@
-import dollarIcon from "../images/dollar.svg";
-import flightArrivalIcon from "../images/flightArrival.svg";
+import dollarIcon from "../../../../images/dollar.svg";
+import flightArrivalIcon from "../../../../images/flightArrival.svg";
 
 const BenefitContainer = ({ benefit }) => {
   return (

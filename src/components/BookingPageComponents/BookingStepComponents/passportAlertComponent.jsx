@@ -1,4 +1,4 @@
-import badgeIcon from "../images/badge.svg";
+import badgeIcon from "../../../images/badge.svg";
 
 const PassportAlert = () => {
   return (

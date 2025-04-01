@@ -1,5 +1,6 @@
-// src/services/authService.js
-const API_URL = 'https://localhost:7237/api/Auth';
+import axios from 'axios';
+
+const API_URL = import.meta.env.VITE_LOGIN_API_URL;
 
 
 export const registerUser = async (registerData) => {
@@ -38,7 +39,18 @@ export const loginUser = async (loginData) => {
   };
 };
 
-export const getAllUsers = async () => {
-  const response = await fetch(`${API_URL}/getusers`);
-  return await response.json();
+export const getAllUsers = async (token) => {
+  try{
+    const response = await axios.get(`${API_URL}/getusers`,{
+      headers:{
+        'Authorization' : `Bearer ${token}`,
+        'Content-Type': "application/json"
+      },
+    })
+
+    return response.data;
+  }
+  catch(error){
+    throw new Error(error.response?.data?.message || "Failed to fetch users.");
+  }
 };

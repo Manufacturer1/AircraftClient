@@ -1,9 +1,8 @@
 import { useState } from "react";
-import calendarIcon from "../images/calendarIcon.svg";
-import FlightComponent from "../components/flightComponent";
+import calendarIcon from "../../../images/calendarIcon.svg";
+import FlightComponent from "../plannerComponents/flightComponent";
 
-
-import PriceHistory from "./priceHistoryComponent";
+import PriceHistory from "../plannerComponents/priceHistoryComponent";
 
 const datesData = [
   { date: "Fri, 16 Feb", price: "148 USD" },

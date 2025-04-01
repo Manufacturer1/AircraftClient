@@ -1,7 +1,7 @@
-import PassengerInput from "../components/passengerInputField";
-import GlobeIcon from "../components/globeIconComponent";
-import PassengerSelect from "../components/passengerSelectComponent";
-import PassportAlert from "../components/passportAlertComponent";
+import PassengerInput from "../components/generalUseComponents/passengerInputField";
+import GlobeIcon from "../components/generalUseComponents/globeIconComponent";
+import PassengerSelect from "../components/generalUseComponents/passengerSelectComponent";
+import PassportAlert from "../components/BookingPageComponents/BookingStepComponents/passportAlertComponent";
 import contactIcon from "../images/contact.svg";
 
 const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
