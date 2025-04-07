@@ -10,6 +10,7 @@ export default function DropDown({
   iconSizes,
   hover,
   hoverActive,
+  onSelect,
 }) {
   const [selected, setSelected] = useState(title);
   const [open, setOpen] = useState(false);
@@ -53,6 +54,7 @@ export default function DropDown({
               onClick={() => {
                 setSelected(option);
                 setOpen(false);
+                onSelect(option);
               }}
             >
               {option}

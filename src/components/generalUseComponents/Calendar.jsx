@@ -12,12 +12,7 @@ import {
   isBefore,
 } from "date-fns";
 
-const Calendar = ({
-  selectedDate,
-  onDateSelect,
-  isReturnCalendar = false,
-  minDate,
-}) => {
+const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -49,6 +44,7 @@ const Calendar = ({
     <div className="bg-white rounded-lg shadow-lg p-4 w-[300px]">
       <div className="flex justify-between items-center mb-4">
         <button
+          type="button"
           onClick={prevMonth}
           className="p-2 rounded-full hover:bg-gray-100"
         >
@@ -56,6 +52,7 @@ const Calendar = ({
         </button>
         <h2 className="font-semibold">{format(currentMonth, "MMMM yyyy")}</h2>
         <button
+          type="button"
           onClick={nextMonth}
           className="p-2 rounded-full hover:bg-gray-100"
         >
@@ -78,15 +75,12 @@ const Calendar = ({
 
           return (
             <button
+              type="button"
               key={i}
               onClick={() => !isDisabled && onDateSelect(day)}
               className={`p-2 rounded-full text-sm 
-          ${
-            isDisabled
-              ? "text-gray-300 cursor-not-allowed"
-              : "hover:bg-gray-100"
-          } 
-          ${isSelected ? "bg-[#FF912B] text-white" : ""}`}
+              ${isDisabled ? "text-gray-300" : "hover:bg-gray-100"} 
+              ${isSelected ? "bg-[#FF912B] text-white" : ""}`}
               disabled={isDisabled}
             >
               {format(day, "d")}

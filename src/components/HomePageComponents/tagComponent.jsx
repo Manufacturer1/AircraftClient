@@ -9,6 +9,7 @@ export default function Tag({ title, icon, isActive = false, onClick }) {
 
   return (
     <button
+      type="button"
       className={`${getButtonStyles()} flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-150`}
       onClick={onClick}
     >

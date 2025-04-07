@@ -40,6 +40,7 @@ body {
   outline: none; 
   color: #FFFFFFFF; 
   background: #F3F4F600;
+  text-transform: capitalize;
 }
 
 .search-input::placeholder {
@@ -62,7 +63,7 @@ input[type="number"]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-
+/* Removes Chrome's yellow background */
 
 @layer base {
   :root {

@@ -37,7 +37,7 @@ const Card = ({
         </div>
 
         <p className="self-end text-lg text-indigo-500 font-semibold">
-          {price}
+          ${price}
         </p>
       </div>
     </div>
