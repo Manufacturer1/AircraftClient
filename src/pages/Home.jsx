@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { format, isBefore } from "date-fns";
 // Components
 import Tag from "../components/HomePageComponents/tagComponent";
@@ -35,6 +35,7 @@ const Home = () => {
   const apiTimeoutRef = useRef(null);
 
   const [fligtResults, setFlightResults] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     return () => {
@@ -43,6 +44,26 @@ const Home = () => {
       clearTimeout(apiTimeoutRef.current);
     };
   }, []);
+
+  const handleExploreDestination = () => {
+    if (fligtResults.length === 0) return;
+
+    const params = new URLSearchParams();
+    params.append("origin", searchData.origin);
+    params.append("destination", searchData.destination);
+    params.append(
+      "departureDate",
+      format(searchData.departureDate, "dd/MM/yyyy")
+    );
+    if (searchData.returnDate) {
+      params.append("returnDate", format(searchData.returnDate, "dd/MM/yyyy"));
+    }
+    params.append("passengerCount", searchData.passengerCount);
+    params.append("travelClass", searchData.travelClass);
+    params.append("tripType", searchData.tripType);
+
+    navigate(`/flights?${params.toString()}`);
+  };
 
   const [searchData, setSearchData] = useState({
     origin: "",
@@ -98,15 +119,17 @@ const Home = () => {
   };
 
   const handleTravelClassChange = (value) => {
+    const serverFormat = labelToTravelClass[value];
     setSearchData((prev) => ({
       ...prev,
-      travelClass: value,
+      travelClass: serverFormat,
     }));
+    console.log(serverFormat);
   };
 
   const getReturnDateDisplay = () => {
     if (searchData.returnDate)
-      return format(searchData.returnDate, "MMM d, yyyy");
+      return format(searchData.returnDate, "dd MMM, yyyy");
 
     return "Return date";
   };
@@ -124,21 +147,25 @@ const Home = () => {
       setLoading(false);
       return;
     }
-    if (!searchData.departureDate) {
-      setSearchData((prev) => ({
-        ...prev,
-        departureDate: new Date(),
-      }));
-    }
+    const updatedSearchData = {
+      ...searchData,
+      departureDate: searchData.departureDate || new Date(),
+      returnDate:
+        searchData.tripType === "RoundTrip" && !searchData.returnDate
+          ? new Date(new Date().setDate(new Date().getDate() + 1))
+          : searchData.returnDate,
+    };
+    setSearchData(updatedSearchData);
 
     if (isInvalidReturnDate) {
       setError("Return date cannot be before departure date");
       setLoading(false);
       return;
     }
+
     try {
       const [result] = await Promise.all([
-        searchFlights(searchData),
+        searchFlights(updatedSearchData),
         new Promise(
           (resolve) => (apiTimeoutRef.current = setTimeout(resolve, 1500))
         ),
@@ -159,6 +186,7 @@ const Home = () => {
       setLoading(false);
     }
   };
+
   const formatCardImgUrl = (imgUrl) => {
     return `${import.meta.env.VITE_RESOURCE_PATH_URL}/${imgUrl}`;
   };
@@ -219,6 +247,11 @@ const Home = () => {
     searchData.returnDate &&
     isBefore(searchData.returnDate, searchData.departureDate);
 
+  const labelToTravelClass = {
+    Economy: "Economy",
+    "First Class": "FirstClass",
+  };
+
   return (
     <main>
       {/* Flight Search Section */}
@@ -272,7 +305,7 @@ const Home = () => {
                 bgColor="bg-[#F0F0FFFF]"
                 title={searchData.travelClass}
                 textColor="text-blue-600"
-                options={["Economy", "Business Class"]}
+                options={["Economy", "First Class"]}
                 hover="hover:bg-[#CECEFFFF]"
                 hoverActive="hover:active:bg-[#ADADFFFF]"
                 onSelect={handleTravelClassChange}
@@ -306,7 +339,7 @@ const Home = () => {
                 />
                 <span>
                   {searchData.departureDate
-                    ? format(searchData.departureDate, "MMM d, yyyy")
+                    ? format(searchData.departureDate, "dd MMM, yyyy")
                     : "Departure date"}
                 </span>
               </button>
@@ -316,6 +349,7 @@ const Home = () => {
                   <Calendar
                     selectedDate={searchData.departureDate}
                     onDateSelect={handleDepartureDateSelect}
+                    mode={"departure"}
                   />
                 </div>
               )}
@@ -349,6 +383,7 @@ const Home = () => {
                         selectedDate={searchData.returnDate}
                         onDateSelect={handleReturnDateSelect}
                         minDate={searchData.departureDate}
+                        mode={"Return"}
                       />
                     </div>
                   )}
@@ -372,14 +407,18 @@ const Home = () => {
               <h1 className="flex text-2xl text-neutral-900 font-bold">
                 <img src={pinIcon} alt="navigation icon" />
                 <span className="mr-1">Trip from</span>
-                <span className="text-[#0FBE86FF]">{searchData.origin}</span>
+                <span className="text-[#0FBE86FF] capitalize">
+                  {searchData.origin}
+                </span>
               </h1>
-              <Link
-                to="/flights"
-                className="px-[12px] text-base font-normal text-white bg-neutral-900 rounded-[18px] h-10 hover:bg-neutral-700 active:bg-neutral-600 transition-all duration-150 flex items-center justify-center"
-              >
-                Explore destination
-              </Link>
+              {fligtResults.length > 0 && (
+                <button
+                  onClick={handleExploreDestination}
+                  className="px-[12px] text-base font-normal text-white bg-neutral-900 rounded-[18px] h-10 hover:bg-neutral-700 active:bg-neutral-600 transition-all duration-150 flex items-center justify-center"
+                >
+                  Explore destination
+                </button>
+              )}
             </div>
             {loading ? (
               <div className="flex justify-center items-center h-64">

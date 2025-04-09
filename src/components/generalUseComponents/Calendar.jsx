@@ -12,7 +12,15 @@ import {
   isBefore,
 } from "date-fns";
 
-const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
+const Calendar = ({
+  selectedDate,
+  onDateSelect,
+  minDate,
+  mode,
+  onSwitchToReturn,
+  onSwitchToDeparture,
+  tripType,
+}) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -22,7 +30,6 @@ const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
-  // Get days from previous month to fill the first week (starting from Sunday)
   const startDay = getDay(monthStart);
   const prevMonthDays = Array.from({ length: startDay }, (_, i) => {
     const date = new Date(monthStart);
@@ -30,7 +37,6 @@ const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
     return date;
   }).reverse();
 
-  // Get days from next month to fill the last week (ending on Saturday)
   const endDay = getDay(monthEnd);
   const nextMonthDays = Array.from({ length: 6 - endDay }, (_, i) => {
     const date = new Date(monthEnd);
@@ -42,7 +48,7 @@ const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-4 w-[300px]">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-2">
         <button
           type="button"
           onClick={prevMonth}
@@ -50,7 +56,16 @@ const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
         >
           &lt;
         </button>
-        <h2 className="font-semibold">{format(currentMonth, "MMMM yyyy")}</h2>
+        <div className="flex flex-col items-center">
+          <h2 className="font-semibold">{format(currentMonth, "MMMM yyyy")}</h2>
+          <p className="text-sm text-gray-500">
+            {mode !== null
+              ? mode === "departure"
+                ? "Select departure date"
+                : "Select return date"
+              : "Select date"}
+          </p>
+        </div>
         <button
           type="button"
           onClick={nextMonth}
@@ -59,6 +74,38 @@ const Calendar = ({ selectedDate, onDateSelect, minDate }) => {
           &gt;
         </button>
       </div>
+
+      {tripType === "RoundTrip" && (
+        <div className="flex justify-center gap-2 mb-2">
+          <button
+            type="button"
+            onClick={onSwitchToDeparture}
+            className={`px-3 py-1 text-sm rounded-full ${
+              mode === "departure"
+                ? "bg-[#FF912B] text-white"
+                : "bg-gray-100 hover:bg-gray-200"
+            }`}
+          >
+            Departure
+          </button>
+          <button
+            type="button"
+            onClick={onSwitchToReturn}
+            disabled={!selectedDate && mode === "departure"}
+            className={`px-3 py-1 text-sm rounded-full ${
+              mode === "return"
+                ? "bg-[#FF912B] text-white"
+                : "bg-gray-100 hover:bg-gray-200"
+            } ${
+              !selectedDate && mode === "departure"
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
+          >
+            Return
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (

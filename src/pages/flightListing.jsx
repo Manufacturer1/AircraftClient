@@ -20,6 +20,9 @@ import windPowerIcon from "../images/windPowerIcon.svg";
 import cactusIcon from "../images/cactus.svg";
 import forestIcon from "../images/forest.svg";
 import cloudIcon from "../images/soundCloud.svg";
+import compareArrows from "../images/material-compareArrows-Outlined.svg";
+import { useSearchParams } from "react-router-dom";
+import { format } from "date-fns";
 
 const flightsInfo = [
   {
@@ -106,10 +109,67 @@ const flightsInfo = [
 
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const origin = searchParams.get("origin");
+  const destination = searchParams.get("destination");
+  const departureDate = searchParams.get("departureDate");
+  const returnDate = searchParams.get("returnDate");
+  const passengerCount = searchParams.get("passengerCount");
+  const travelClass = searchParams.get("travelClass");
+  const tripType = searchParams.get("tripType");
+
+  const [formData, setFormData] = useState({
+    origin: origin || "",
+    destination: destination || "",
+    departureDate: departureDate || "",
+    returnDate: returnDate || "",
+    passengerCount: passengerCount ? parseInt(passengerCount) : 1,
+    travelClass: travelClass || "Economy",
+    tripType: tripType || "OneWay",
+  });
+
+  const tripTypeIcon = tripType === "RoundTrip" ? compareArrows : rightArrow;
+
+  const tripTypeToLabel = {
+    OneWay: "One way",
+    RoundTrip: "Round trip",
+  };
+
+  const labelToTripType = {
+    "One way": "OneWay",
+    "Round trip": "RoundTrip",
+  };
+  const travelClassToLabel = {
+    Economy: "Economy",
+    FirstClass: "First Class",
+  };
+
+  const labelToTravelClass = {
+    Economy: "Economy",
+    "First Class": "FirstClass",
+  };
+  const handleTripTypeChange = (selectedLabel) => {
+    const serverFormat = labelToTripType[selectedLabel];
+    setFormData((prev) => ({ ...prev, tripType: serverFormat }));
+  };
+  const handleTravelClassChange = (selectedLabel) => {
+    const serverFormat = labelToTravelClass[selectedLabel];
+    setFormData((prev) => ({ ...prev, travelClass: serverFormat }));
+  };
 
   const handleModalOpen = () => {
     setModalOpen((prev) => !prev);
   };
+
+  const handleInputChanges = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   useEffect(() => {
     if (openModal) {
       document.body.style.overflow = "hidden";
@@ -137,8 +197,8 @@ const FlightList = () => {
           <div className="flex items-center gap-5 mb-5">
             <div>
               <DropDown
-                title={"One way"}
-                icon={rightArrow}
+                title={tripTypeToLabel[formData.tripType]}
+                icon={tripTypeIcon}
                 iconSizes={"w-6"}
                 arrowIcon={dropDownIcon}
                 textColor={"text-neutral-700"}
@@ -146,6 +206,7 @@ const FlightList = () => {
                 options={["One way", "Round trip"]}
                 hover={"hover:bg-[#CFD2DAFF]"}
                 hoverActive={"hover:active:bg-[#A7ADB7FF]"}
+                onSelect={handleTripTypeChange}
               />
             </div>
             <div>
@@ -155,12 +216,12 @@ const FlightList = () => {
                 bg-[#F3F4F6FF] rounded-[18px] justify-center gap-1"
               >
                 <img src={meetingIcon} />
-                <span>1</span>
+                <span>{formData.passengerCount}</span>
               </button>
             </div>
             <div>
               <DropDown
-                title={"Economy"}
+                title={travelClassToLabel[formData.travelClass]}
                 icon={blackTicketIcon}
                 textColor={"text-neutral-700"}
                 arrowIcon={dropDownIcon}
@@ -168,18 +229,47 @@ const FlightList = () => {
                 options={["Economy", "First Class"]}
                 hover={"hover:bg-[#CFD2DAFF]"}
                 hoverActive={"hover:active:bg-[#A7ADB7FF]"}
+                onSelect={handleTravelClassChange}
               />
             </div>
           </div>
-
+          {/*Search components*/}
           <div className="flex items-center justify-between mb-7">
-            <FindInput defaultText={"Houston (HOU)"} icon={gpsIcon} />
-            <img className="w-10" src={swapArrowsIcon} />
-            <FindInput defaultText={"Los Angeles (LAX)"} icon={gpsIcon} />
             <FindInput
-              defaultText={"9/12/2023 - 12/2/2023"}
+              inputName="origin"
+              value={formData.origin}
+              onValueChange={handleInputChanges}
+              defaultText={`${formData.origin}`}
+              icon={gpsIcon}
+            />
+            <img className="w-10" src={swapArrowsIcon} />
+            <FindInput
+              inputName="destination"
+              defaultText={`${formData.destination}`}
+              value={formData.destination}
+              onValueChange={handleInputChanges}
+              icon={gpsIcon}
+            />
+            <FindInput
               icon={calendarIcon}
               optionalIcon={unfoldIcon}
+              defaultText="Select date"
+              isDate={true}
+              onDateSelect={(date) => {
+                setFormData({
+                  ...formData,
+                  departureDate: date,
+                });
+              }}
+              onReturnDateSelect={(date) => {
+                setFormData({
+                  ...formData,
+                  returnDate: date,
+                });
+              }}
+              departureDate={formData.departureDate}
+              returnDate={formData.returnDate}
+              tripType={formData.tripType}
             />
             <button
               className="rounded-full
@@ -192,6 +282,7 @@ const FlightList = () => {
               <img className="w-5 h-5" src={searchIcon} />
             </button>
           </div>
+          {/*End of search components */}
 
           {/*Calendar planner */}
           <div className="mb-10">
@@ -200,6 +291,7 @@ const FlightList = () => {
               flightsInfo={flightsInfo}
             />
           </div>
+
           {/*Pagination */}
           <div className="mb-16 flex justify-end">
             <Pagination
