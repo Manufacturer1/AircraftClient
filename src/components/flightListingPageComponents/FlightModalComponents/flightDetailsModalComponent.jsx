@@ -11,44 +11,6 @@ import RefundOption from "./RefundComponents/refundOptionComponent";
 import RescheduleOption from "./RescheduleComponents/rescheduleOptionComponent";
 import { Link } from "react-router-dom";
 
-const travelInfo = [
-  {
-    departureCity: "Houston (HOU)",
-    arrivalCity: "Las Vegas (LAS)",
-    departureAirport: "George Bush Intercontinental Airport, Houston",
-    arrivalAirport: "McCarran International Airport, Las Vegas",
-    ticketNumber: "CA-6018",
-    classType: "Economy",
-    cabinBagsNr: 1,
-    cabingBagsCapacity: 7,
-    baggageNr: 2,
-    plane: "Airbus",
-    planeModel: "A320",
-    seatLayout: "3-3",
-    seatPitchInches: 29,
-    seatType: "standard",
-    hasAmenities: false,
-  },
-  {
-    departureCity: "Las Vegas (LAS)",
-    arrivalCity: "Los Angeles (LAX)",
-    departureAirport: "McCarran International Airport, Las Vegas",
-    arrivalAirport: "Los Angeles International Airport",
-    ticketNumber: "CA-6291",
-    classType: "Economy",
-    cabinBagsNr: 1,
-    cabingBagsCapacity: 7,
-    baggageNr: 2,
-    plane: "Airbus",
-    planeModel: "A320",
-    seatLayout: "3-3-3",
-    seatPitchInches: 32,
-    seatType: "standard",
-    hasAmenities: true,
-    amenities: [cutleryIcon, videoPlayerIcon, usbIcon],
-  },
-];
-
 const priceDetails = {
   tax: true,
   totalPrice: 150.0,
@@ -57,6 +19,43 @@ const priceDetails = {
 };
 
 const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
+  const travelInfo = [
+    {
+      departureCity: "Houston (HOU)",
+      arrivalCity: "Las Vegas (LAS)",
+      departureAirport: "George Bush Intercontinental Airport, Houston",
+      arrivalAirport: "McCarran International Airport, Las Vegas",
+      ticketNumber: "CA-6018",
+      classType: "Economy",
+      cabinBagsNr: 1,
+      cabingBagsCapacity: 7,
+      baggageNr: 2,
+      plane: "Airbus",
+      planeModel: "A320",
+      seatLayout: "3-3",
+      seatPitchInches: 29,
+      seatType: "standard",
+      hasAmenities: false,
+    },
+    {
+      departureCity: "Las Vegas (LAS)",
+      arrivalCity: "Los Angeles (LAX)",
+      departureAirport: "McCarran International Airport, Las Vegas",
+      arrivalAirport: "Los Angeles International Airport",
+      ticketNumber: "CA-6291",
+      classType: "Economy",
+      cabinBagsNr: 1,
+      cabingBagsCapacity: 7,
+      baggageNr: 2,
+      plane: "Airbus",
+      planeModel: "A320",
+      seatLayout: "3-3-3",
+      seatPitchInches: 32,
+      seatType: "standard",
+      hasAmenities: true,
+      amenities: [cutleryIcon, videoPlayerIcon, usbIcon],
+    },
+  ];
   const modalRef = useRef(null);
   const [option, setOption] = useState(0);
 

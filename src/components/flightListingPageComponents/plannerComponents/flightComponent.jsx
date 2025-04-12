@@ -13,29 +13,25 @@ const FlightComponent = ({
   stopsNumber = 0,
   handleModalOpen,
 }) => {
-  const parseTime = (time) => {
-    const [timePart, period] = time.split(" ");
-    const [hours, minutes] = timePart.split(":").map(Number);
-
-    if (period === "PM" && hours !== 12) {
-      return (hours + 12) * 60 + minutes;
-    }
-    if (period === "AM" && hours === 12) {
-      return minutes;
-    }
-    return hours * 60 + minutes;
-  };
-
   const calculateDuration = (departure, arrival) => {
-    const depMinutes = parseTime(departure);
-    const arrMinutes = parseTime(arrival);
+    const [depHours, depMinutes] = departure.split(":").map(Number);
+    const [arrHours, arrMinutes] = arrival.split(":").map(Number);
 
-    let diff = arrMinutes - depMinutes;
+    let depTotalMinutes = depHours * 60 + depMinutes;
+    let arrTotalMinutes = arrHours * 60 + arrMinutes;
+
+    let diff = arrTotalMinutes - depTotalMinutes;
     if (diff < 0) diff += 24 * 60;
 
     const hours = Math.floor(diff / 60);
     const minutes = diff % 60;
     return `${hours}h ${minutes}m`;
+  };
+  const parseTime = (time) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   return (
@@ -64,7 +60,7 @@ const FlightComponent = ({
         <div className="flex flex-col justify-center">
           <div className="flex items-center">
             <span className="text-neutral-900 font-semibold text-xl">
-              {flightDepartureTime} - {flightArrivalTime}
+              {parseTime(flightDepartureTime)} - {parseTime(flightArrivalTime)}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-2">

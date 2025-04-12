@@ -1,25 +1,38 @@
 import { useState } from "react";
 import calendarIcon from "../../../images/calendarIcon.svg";
 import FlightComponent from "../plannerComponents/flightComponent";
+import { format } from "date-fns";
+import LoadingSpinner from "../../generalUseComponents/loadingSpinner";
 
 import PriceHistory from "../plannerComponents/priceHistoryComponent";
 
 const datesData = [
-  { date: "Fri, 16 Feb", price: "148 USD" },
-  { date: "Sat, 17 Feb", price: "160 USD" },
-  { date: "Sun, 18 Feb", price: "170.8 USD" },
-  { date: "Mon, 19 Feb", price: "150 USD" },
-  { date: "Tue, 20 Feb", price: "146.5 USD" },
+  { date: format(new Date(), "EEE, d MMM"), price: "148 USD" },
+  {
+    date: format(new Date().setDate(new Date().getDate() + 1), "EEE, d MMM"),
+    price: "160 USD",
+  },
+  {
+    date: format(new Date().setDate(new Date().getDate() + 2), "EEE, d MMM"),
+    price: "170.8 USD",
+  },
+  {
+    date: format(new Date().setDate(new Date().getDate() + 3), "EEE, d MMM"),
+    price: "150 USD",
+  },
+  {
+    date: format(new Date().setDate(new Date().getDate() + 4), "EEE, d MMM"),
+    price: "146.5 USD",
+  },
 ];
 
-const Planner = ({ handleModalOpen, flightsInfo }) => {
+const Planner = ({ handleModalOpen, flightsInfo, isLoading = false }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
-
   return (
     <div>
+      {/* Date Tabs */}
       <div className="w-full bg-[#0EA776] h-20 rounded-t-md px-4 mb-4">
         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_50px_50px] items-center h-full mb-4">
-          {/* Date Tabs */}
           {datesData.map((item, index) => (
             <div
               key={index}
@@ -35,12 +48,10 @@ const Planner = ({ handleModalOpen, flightsInfo }) => {
             </div>
           ))}
 
-          {/* Divider */}
           <div className="flex justify-center items-center h-full">
             <hr className="w-[1px] h-full bg-white border-none" />
           </div>
 
-          {/* Calendar Icon */}
           <div className="flex justify-center items-center h-full">
             <img
               src={calendarIcon}
@@ -50,52 +61,25 @@ const Planner = ({ handleModalOpen, flightsInfo }) => {
           </div>
         </div>
       </div>
-      {/*Flight Component */}
-      <div className="mb-5">
-        {flightsInfo
-          .filter((_, i) => i < 3)
-          .map((flight, index) => (
-            <div key={index}>
-              <FlightComponent
-                airlineIcon={flight.airlineIcon}
-                airlineBgColor={flight.airlineBgColor}
-                airlineName={flight.airlineName}
-                bagCapacity={flight.bagCapacity}
-                flightDepartureTime={flight.flightDepartureTime}
-                flightArrivalTime={flight.flightArrivalTime}
-                flightPrice={flight.flightPrice}
-                stopsNumber={flight.stopsNumber}
-                handleModalOpen={handleModalOpen}
-              />
-            </div>
-          ))}
-      </div>
-      {/*Price history component*/}
-      <div className="mb-4">
-        <PriceHistory />
-      </div>
-      {/*Typical flights */}
-      <div className="h-full">
-        {flightsInfo
-          .filter((_, i) => i >= 3)
-          .map((flight, index) => (
-            <div key={index}>
-              <FlightComponent
-                airlineIcon={flight.airlineIcon}
-                airlineBgColor={flight.airlineBgColor}
-                airlineName={flight.airlineName}
-                bagCapacity={flight.bagCapacity}
-                flightDepartureTime={flight.flightDepartureTime}
-                flightArrivalTime={flight.flightArrivalTime}
-                flightPrice={flight.flightPrice}
-                stopsNumber={flight.stopsNumber}
-                handleModalOpen={handleModalOpen}
-              />
-            </div>
-          ))}
-      </div>
+
+      {isLoading ? (
+        <LoadingSpinner />
+      ) : (
+        <>
+          {/* Flight Component */}
+          <div className="mb-5">
+            {flightsInfo.map((flight, index) => (
+              <div key={index}>
+                <FlightComponent
+                  {...flight}
+                  handleModalOpen={handleModalOpen}
+                />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };
-
 export default Planner;

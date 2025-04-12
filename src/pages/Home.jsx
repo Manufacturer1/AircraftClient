@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { format, isBefore } from "date-fns";
+import { format, parseISO, isBefore, isSameDay, isSameMonth } from "date-fns";
 // Components
 import Tag from "../components/HomePageComponents/tagComponent";
 import DropDown from "../components/generalUseComponents/dropDownMenu";
@@ -34,7 +34,8 @@ const Home = () => {
   const modifySearchTimeoutRef = useRef(null);
   const apiTimeoutRef = useRef(null);
 
-  const [fligtResults, setFlightResults] = useState([]);
+  const [flightResults, setFlightResults] = useState([]);
+  const [results, setResults] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -46,7 +47,7 @@ const Home = () => {
   }, []);
 
   const handleExploreDestination = () => {
-    if (fligtResults.length === 0) return;
+    if (flightResults.length === 0) return;
 
     const params = new URLSearchParams();
     params.append("origin", searchData.origin);
@@ -62,7 +63,9 @@ const Home = () => {
     params.append("travelClass", searchData.travelClass);
     params.append("tripType", searchData.tripType);
 
-    navigate(`/flights?${params.toString()}`);
+    navigate(`/flights?${params.toString()}`, {
+      state: { results },
+    });
   };
 
   const [searchData, setSearchData] = useState({
@@ -171,7 +174,10 @@ const Home = () => {
         ),
       ]);
 
-      setFlightResults(result);
+      setResults(result);
+      const flights = result.map((item) => item.flights);
+      setFlightResults(flights.flat());
+
       setIsSubmit(true);
 
       scrollTimeoutRef.current = setTimeout(() => {
@@ -181,7 +187,7 @@ const Home = () => {
         });
       }, 100);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch flights");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -190,24 +196,27 @@ const Home = () => {
   const formatCardImgUrl = (imgUrl) => {
     return `${import.meta.env.VITE_RESOURCE_PATH_URL}/${imgUrl}`;
   };
-  const formatCardIcon = (imgUrl) => {
-    let icon = sunriseIcon;
-    if (imgUrl == -"morning") {
-      icon = sunriseIcon;
-    }
-    return icon;
-  };
-  const formatFlightDate = (departureDate, arrivalDate) => {
-    const departDate = new Date(departureDate);
-    const arriveDate = new Date(arrivalDate);
 
-    // Format as "9 - 10 Feb, 2023"
-    if (departDate.getMonth() === arriveDate.getMonth()) {
-      return `${departDate.getDate()} - ${arriveDate.getDate()} ${format(
-        departDate,
-        "MMM"
-      )}, ${departDate.getFullYear()}`;
+  const formatFlightDate = (departureDate, arrivalDate) => {
+    if (!departureDate || !arrivalDate) return "N/A";
+
+    const departDate = parseISO(departureDate);
+    const arriveDate = parseISO(arrivalDate);
+
+    // Same day (e.g., "15 Dec, 2023")
+    if (isSameDay(departDate, arriveDate)) {
+      return format(departDate, "d MMM, yyyy");
     }
+
+    // Same month (e.g., "15 - 18 Dec, 2023")
+    if (isSameMonth(departDate, arriveDate)) {
+      return `${format(departDate, "d")} - ${format(
+        arriveDate,
+        "d MMM, yyyy"
+      )}`;
+    }
+
+    // Different months (e.g., "28 Dec - 2 Jan, 2024")
     return `${format(departDate, "d MMM")} - ${format(
       arriveDate,
       "d MMM, yyyy"
@@ -411,7 +420,7 @@ const Home = () => {
                   {searchData.origin}
                 </span>
               </h1>
-              {fligtResults.length > 0 && (
+              {flightResults && flightResults.length > 0 && (
                 <button
                   onClick={handleExploreDestination}
                   className="px-[12px] text-base font-normal text-white bg-neutral-900 rounded-[18px] h-10 hover:bg-neutral-700 active:bg-neutral-600 transition-all duration-150 flex items-center justify-center"
@@ -428,7 +437,7 @@ const Home = () => {
               <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
                 {error}
               </div>
-            ) : fligtResults.length === 0 ? (
+            ) : flightResults && flightResults.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 p-6 text-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -462,23 +471,24 @@ const Home = () => {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-8">
-                {fligtResults.map((item, index) => (
-                  <Card
-                    key={index}
-                    cardImg={formatCardImgUrl(item.destinationImageUrl)}
-                    timeIcon={formatCardIcon(item.timeIcon)}
-                    flightDate={formatFlightDate(
-                      item.departureDate,
-                      item.arrivalDate
-                    )}
-                    flightHours={formatFlightDuration(
-                      item.departureTime,
-                      item.arrivalTime
-                    )}
-                    cityName={item.destination}
-                    price={item.basePrice}
-                  />
-                ))}
+                {flightResults &&
+                  flightResults.map((item, index) => (
+                    <Card
+                      key={index}
+                      cardImg={formatCardImgUrl(item.destinationImageUrl)}
+                      timeIcon={sunriseIcon}
+                      flightDate={formatFlightDate(
+                        item.departureDate,
+                        item.arrivalDate
+                      )}
+                      flightHours={formatFlightDuration(
+                        item.departureTime,
+                        item.arrivalTime
+                      )}
+                      cityName={item.destination}
+                      price={item.basePrice}
+                    />
+                  ))}
               </div>
             )}
             {/*

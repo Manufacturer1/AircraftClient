@@ -10,7 +10,7 @@ const Card = ({
     <div className="flex bg-white border-[1px] border-[#FFF7F0FF] border-solid shadow-xs rounded-lg">
       <div className="basis-1/2 ">
         <img
-          className="rounded-tl-lg rounded-bl-lg"
+          className="rounded-tl-lg rounded-bl-lg w-[400px] h-[200px]"
           src={cardImg}
           alt="card image"
         />
