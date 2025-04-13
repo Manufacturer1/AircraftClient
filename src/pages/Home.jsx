@@ -56,12 +56,12 @@ const Home = () => {
       "departureDate",
       format(searchData.departureDate, "dd/MM/yyyy")
     );
-    if (searchData.returnDate) {
-      params.append("returnDate", format(searchData.returnDate, "dd/MM/yyyy"));
-    }
+    params.append("returnDate", format(searchData.returnDate, "dd/MM/yyyy"));
     params.append("passengerCount", searchData.passengerCount);
     params.append("travelClass", searchData.travelClass);
     params.append("tripType", searchData.tripType);
+
+    console.log(searchData);
 
     navigate(`/flights?${params.toString()}`, {
       state: { results },
@@ -137,6 +137,24 @@ const Home = () => {
     return "Return date";
   };
 
+  useEffect(() => {
+    if (searchData.departureDate === "" || searchData.departureDate === null) {
+      setSearchData((prev) => ({
+        ...prev,
+        departureDate: format(new Date(), "d, MMM yyyy"),
+        returnDate: format(new Date(), "d, MMM, yyyy"),
+      }));
+    }
+  }, []);
+
+  const formatDate = (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -150,12 +168,13 @@ const Home = () => {
       setLoading(false);
       return;
     }
+
     const updatedSearchData = {
       ...searchData,
-      departureDate: searchData.departureDate || new Date(),
+      departureDate: formatDate(searchData.departureDate),
       returnDate:
-        searchData.tripType === "RoundTrip" && !searchData.returnDate
-          ? new Date(new Date().setDate(new Date().getDate() + 1))
+        searchData.returnDate === null
+          ? formatDate(new Date())
           : searchData.returnDate,
     };
     setSearchData(updatedSearchData);

@@ -12,7 +12,14 @@ const FlightComponent = ({
   flightPrice,
   stopsNumber = 0,
   handleModalOpen,
+  onSelect,
+  index,
 }) => {
+  const handleChooseClick = () => {
+    handleModalOpen();
+    onSelect(index);
+  };
+
   const calculateDuration = (departure, arrival) => {
     const [depHours, depMinutes] = departure.split(":").map(Number);
     const [arrHours, arrMinutes] = arrival.split(":").map(Number);
@@ -107,7 +114,7 @@ const FlightComponent = ({
             </small>
           </span>
           <button
-            onClick={handleModalOpen}
+            onClick={handleChooseClick}
             className="h-9 w-20 self-end
            text-neutral-700 
            font-normal bg-white rounded-[4px] 

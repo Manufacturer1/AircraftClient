@@ -14,22 +14,34 @@ import unfoldIcon from "../images/unfoldIcon.svg";
 import searchIcon from "../images/searchOutlined.svg";
 import Planner from "../components/flightListingPageComponents/plannerComponents/plannerComponent";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import FlightModal from "../components/flightListingPageComponents/FlightModalComponents/flightDetailsModalComponent";
-import windPowerIcon from "../images/windPowerIcon.svg";
-import cactusIcon from "../images/cactus.svg";
-import forestIcon from "../images/forest.svg";
 import cloudIcon from "../images/soundCloud.svg";
 import compareArrows from "../images/material-compareArrows-Outlined.svg";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { getAirlineById } from "../services/airlineService";
 import { getFlightByFlightNumber } from "../services/flightService";
 import { getBaggageById } from "../services/baggageService";
-import { Modal } from "@mui/material";
+import { searchFlights } from "../services/flightService";
+import { format } from "date-fns";
+
+const convertToDisplayFormat = (date) => {
+  if (!date) return null;
+
+  if (date.includes("/")) {
+    return date;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const [year, month, day] = date.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  return date;
+};
 
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const origin = searchParams.get("origin");
   const destination = searchParams.get("destination");
@@ -42,8 +54,8 @@ const FlightList = () => {
   const [formData, setFormData] = useState({
     origin: origin || "",
     destination: destination || "",
-    departureDate: departureDate || "",
-    returnDate: returnDate || "",
+    departureDate: departureDate ? convertToDisplayFormat(departureDate) : "",
+    returnDate: returnDate ? convertToDisplayFormat(returnDate) : null,
     passengerCount: passengerCount ? parseInt(passengerCount) : 1,
     travelClass: travelClass || "Economy",
     tripType: tripType || "OneWay",
@@ -54,72 +66,123 @@ const FlightList = () => {
   const [loadingAirlines, setLoadingAirlines] = useState(false);
   const [flights, setFlights] = useState([]);
   const [apiFlights, setApiFlights] = useState([]);
+  const [baggages, setBaggages] = useState([]);
+  const [selectedFlightIndex, setSelectedFlightIndex] = useState(0);
+  const [itineraries, setItineraries] = useState(itineraryResults);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const apiTimeoutRef = useRef(null);
 
+  const updateSearchParams = (formData) => {
+    const newSearchParams = new URLSearchParams();
+    newSearchParams.set("origin", formData.origin);
+    newSearchParams.set("destination", formData.destination);
+    newSearchParams.set("departureDate", formData.departureDate);
+    newSearchParams.set("passengerCount", formData.passengerCount.toString());
+    newSearchParams.set("travelClass", formData.travelClass);
+    newSearchParams.set("tripType", formData.tripType);
+
+    if (formData.tripType === "RoundTrip" && formData.returnDate) {
+      newSearchParams.set("returnDate", formData.returnDate);
+    } else {
+      newSearchParams.delete("returnDate");
+    }
+
+    setSearchParams(newSearchParams);
+  };
   useEffect(() => {
     window.scrollTo({ top: 500, behavior: "smooth" });
   }, []);
+  const fetchData = async () => {
+    try {
+      setLoadingAirlines(true);
 
+      const flightNumbers = itineraries.flatMap((it) =>
+        it.flights.map((flight) => flight.flightNumber)
+      );
+
+      const uniqueFlightNumbers = [...new Set(flightNumbers)];
+      const flightPromises = uniqueFlightNumbers.map((flightNumber) =>
+        getFlightByFlightNumber(flightNumber)
+      );
+      const flights = await Promise.all(flightPromises);
+      setFlights(flights);
+
+      // 2. Fetch all airlines
+      const airlinesIds = [
+        ...new Set(itineraries.map((it) => it.itinerary.airlineId)),
+      ];
+      const airlineResponses = await Promise.all(
+        airlinesIds.map((id) => getAirlineById(id))
+      );
+
+      // Create airline map
+      const airlinesMap = airlineResponses.reduce((acc, airline) => {
+        if (airline) acc[airline.id] = airline;
+        return acc;
+      }, {});
+
+      // 3. Fetch all baggage policies
+      const baggageIds = [
+        ...new Set(
+          airlineResponses
+            .map((airline) => airline.baggagePolicyId)
+            .filter(Boolean)
+        ),
+      ];
+      const baggagePromises = baggageIds.map((id) => getBaggageById(id));
+      const baggageResponses = await Promise.all(baggagePromises);
+      setBaggages(baggageResponses);
+
+      // Create baggage map
+      const baggageMap = baggageResponses.reduce((acc, baggage) => {
+        if (baggage) acc[baggage.id] = baggage;
+        return acc;
+      }, {});
+
+      // 4. Merge all data
+      const mergedFlights = itineraries.map((itinerary) => {
+        const airline = airlinesMap[itinerary.itinerary.airlineId] || {};
+        const baggage = baggageMap[airline.baggagePolicyId] || {};
+
+        return {
+          airlineId: itinerary.itinerary.airlineId,
+          airlineIcon: getAirlineIcon(airline.airlineImageUrl),
+          airlineBgColor: getAirlineBgColor(airline.airlineBgColor),
+          airlineName: airline.name || "Unknown Airline",
+          flightDepartureTime: itinerary.itinerary.departureTime,
+          flightArrivalTime: itinerary.itinerary.arrivalTime || "",
+          flightPrice: itinerary.itinerary.totalPrice || 0,
+          stopsNumber: itinerary.flights.length - 1,
+          bagCapacity: baggage.checkedWeightLimitKg || 0,
+        };
+      });
+
+      setApiFlights(mergedFlights);
+
+      await delay(2000);
+    } catch (error) {
+      console.error("Error fetching flight data:", error);
+    } finally {
+      setLoadingAirlines(false);
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      if (itineraryResults.length === 0) {
-        setLoadingAirlines(false);
-        return;
-      }
-
-      try {
-        setLoadingAirlines(true);
-
-        const flightNumbers = itineraryResults.flatMap((it) =>
-          it.flights.map((flight) => flight.flightNumber)
-        );
-        const uniqueFlightNumbers = [...new Set(flightNumbers)];
-        const flightPromises = uniqueFlightNumbers.map((flightNumber) =>
-          getFlightByFlightNumber(flightNumber)
-        );
-        const flights = await Promise.all(flightPromises);
-        setFlights(flights);
-
-        const airlinesIds = [
-          ...new Set(itineraryResults.map((it) => it.itinerary.airlineId)),
-        ];
-        const airlineResponses = await Promise.all(
-          airlinesIds.map((id) => getAirlineById(id))
-        );
-
-        const airlinesMap = airlineResponses.reduce((acc, airline) => {
-          if (airline) acc[airline.id] = airline;
-          return acc;
-        }, {});
-
-        const mergedFlights = itineraryResults.map((itinerary) => {
-          const airline = airlinesMap[itinerary.itinerary.airlineId] || {};
-
-          return {
-            airlineId: itinerary.airlineId,
-            airlineIcon: getAirlineIcon(airline.airlineImageUrl),
-            airlineBgColor: getAirlineBgColor(airline.airlineBgColor),
-            airlineName: airline.name,
-            flightDepartureTime: itinerary.itinerary.departureTime,
-            flightArrivalTime: itinerary.itinerary.arrivalTime || "",
-            flightPrice: itinerary.itinerary.totalPrice || 0,
-            stopsNumber: itinerary.flights.length - 1,
-            bagCapacity: 23,
-          };
-        });
-
-        setApiFlights(mergedFlights);
-        await delay(2000);
-      } catch (error) {
-        console.error("Error fetching flight data:", error);
-      } finally {
-        setLoadingAirlines(false);
-      }
-    };
-
     fetchData();
-  }, [itineraryResults]);
+  }, [itineraries]);
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const delay = (ms) => {
+    if (apiTimeoutRef.current) {
+      clearTimeout(apiTimeoutRef.current);
+    }
+
+    return new Promise((resolve) => {
+      apiTimeoutRef.current = setTimeout(() => {
+        resolve();
+        apiTimeoutRef.current = null;
+      }, ms);
+    });
+  };
 
   const getAirlineIcon = (airlineIconName) => {
     if (airlineIconName)
@@ -153,11 +216,19 @@ const FlightList = () => {
   };
   const handleTripTypeChange = (selectedLabel) => {
     const serverFormat = labelToTripType[selectedLabel];
-    setFormData((prev) => ({ ...prev, tripType: serverFormat }));
+    const newFormData = {
+      ...formData,
+      tripType: serverFormat,
+      returnDate: serverFormat === "OneWay" ? null : formData.returnDate,
+    };
+    setFormData(newFormData);
+    updateSearchParams(newFormData);
   };
   const handleTravelClassChange = (selectedLabel) => {
     const serverFormat = labelToTravelClass[selectedLabel];
-    setFormData((prev) => ({ ...prev, travelClass: serverFormat }));
+    const newFormData = { ...formData, travelClass: serverFormat };
+    setFormData(newFormData);
+    updateSearchParams(newFormData);
   };
 
   const handleModalOpen = () => {
@@ -166,10 +237,78 @@ const FlightList = () => {
 
   const handleInputChanges = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const newFormData = { ...formData, [name]: value };
+    setFormData(newFormData);
+    updateSearchParams(newFormData);
+  };
+
+  const formatDateToString = (date) => {
+    if (!date) return null;
+    if (typeof date === "string") return date;
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+  const convertToApiFormat = (date) => {
+    if (!date) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    if (date.toString().includes("/")) {
+      const [day, month, year] = date.split("/");
+      return `${year}-${month}-${day}`;
+    }
+
+    return date;
+  };
+  const handleDateChange = (date, isReturnDate = false) => {
+    const formattedDate = formatDateToString(date);
+    const newFormData = isReturnDate
+      ? { ...formData, returnDate: formattedDate }
+      : { ...formData, departureDate: formattedDate };
+
+    setFormData(newFormData);
+    updateSearchParams(newFormData);
+  };
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    if (!formData.destination || !formData.origin) {
+      setError("Please enter both origin and destination.");
+      setLoading(false);
+      return;
+    }
+
+    if (formData.tripType === "RoundTrip" && !formData.returnDate) {
+      setError("Choose a return date before submitting.");
+      setLoading(false);
+      return;
+    }
+    const apiFormattedData = {
+      ...formData,
+      departureDate: convertToApiFormat(formData.departureDate),
+      returnDate:
+        formData.tripType === "OneWay"
+          ? convertToApiFormat(formData.departureDate)
+          : formData.returnDate
+          ? convertToApiFormat(formData.returnDate)
+          : null,
+    };
+    setFormData(apiFormattedData);
+
+    try {
+      const searchData = await searchFlights(apiFormattedData);
+      setItineraries(searchData);
+    } catch (error) {
+      setError(error.message);
+      setItineraries([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -184,6 +323,16 @@ const FlightList = () => {
     };
   }, [openModal]);
 
+  useEffect(() => {
+    return () => {
+      if (apiTimeoutRef.current) {
+        clearTimeout(apiTimeoutRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    updateSearchParams(formData);
+  }, []);
   return (
     <section className="px-20 py-5">
       <div className="mb-5">
@@ -236,54 +385,47 @@ const FlightList = () => {
             </div>
           </div>
           {/*Search components*/}
-          <div className="flex items-center justify-between mb-7">
-            <FindInput
-              inputName="origin"
-              value={formData.origin}
-              onValueChange={handleInputChanges}
-              defaultText={`${formData.origin}`}
-              icon={gpsIcon}
-            />
-            <img className="w-10" src={swapArrowsIcon} />
-            <FindInput
-              inputName="destination"
-              defaultText={`${formData.destination}`}
-              value={formData.destination}
-              onValueChange={handleInputChanges}
-              icon={gpsIcon}
-            />
-            <FindInput
-              icon={calendarIcon}
-              optionalIcon={unfoldIcon}
-              defaultText="Select date"
-              isDate={true}
-              onDateSelect={(date) => {
-                setFormData({
-                  ...formData,
-                  departureDate: date,
-                });
-              }}
-              onReturnDateSelect={(date) => {
-                setFormData({
-                  ...formData,
-                  returnDate: date,
-                });
-              }}
-              departureDate={formData.departureDate}
-              returnDate={formData.returnDate}
-              tripType={formData.tripType}
-            />
-            <button
-              className="rounded-full
+          <form method="post" onSubmit={handleSearchSubmit}>
+            <div className="flex items-center justify-between mb-7">
+              <FindInput
+                inputName="origin"
+                value={formData.origin}
+                onValueChange={handleInputChanges}
+                defaultText={`${formData.origin}`}
+                icon={gpsIcon}
+              />
+              <img className="w-10" src={swapArrowsIcon} />
+              <FindInput
+                inputName="destination"
+                defaultText={`${formData.destination}`}
+                value={formData.destination}
+                onValueChange={handleInputChanges}
+                icon={gpsIcon}
+              />
+              <FindInput
+                icon={calendarIcon}
+                optionalIcon={unfoldIcon}
+                defaultText="Select date"
+                isDate={true}
+                onDateSelect={(date) => handleDateChange(date)}
+                onReturnDateSelect={(date) => handleDateChange(date, true)}
+                departureDate={formData.departureDate}
+                returnDate={formData.returnDate}
+                tripType={formData.tripType}
+              />
+              <button
+                type="submit"
+                className="rounded-full
              w-11 h-11 flex
               items-center 
               justify-center
                bg-[#11D396FF]
                hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] transition-all duration-150"
-            >
-              <img className="w-5 h-5" src={searchIcon} />
-            </button>
-          </div>
+              >
+                <img className="w-5 h-5" src={searchIcon} />
+              </button>
+            </div>
+          </form>
           {/*End of search components */}
 
           {/*Calendar planner */}
@@ -292,6 +434,7 @@ const FlightList = () => {
               handleModalOpen={handleModalOpen}
               flightsInfo={apiFlights}
               isLoading={loadingAirlines}
+              onFlightSelect={setSelectedFlightIndex}
             />
           </div>
 
@@ -337,12 +480,11 @@ const FlightList = () => {
         </div>
       </div>
 
-      {/*Modal Flight Details Modal*/}
       <section className="z-20">
         {apiFlights.length > 0 && (
           <FlightModal
             openModal={openModal}
-            flightDetails={apiFlights}
+            flightDetails={apiFlights[selectedFlightIndex]}
             setModalOpen={setModalOpen}
           />
         )}

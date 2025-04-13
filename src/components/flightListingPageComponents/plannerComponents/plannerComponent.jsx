@@ -26,8 +26,18 @@ const datesData = [
   },
 ];
 
-const Planner = ({ handleModalOpen, flightsInfo, isLoading = false }) => {
+const Planner = ({
+  handleModalOpen,
+  flightsInfo,
+  isLoading = false,
+  onFlightSelect,
+}) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const handleFlightSelect = (index) => {
+    onFlightSelect(index);
+  };
+
   return (
     <div>
       {/* Date Tabs */}
@@ -72,7 +82,9 @@ const Planner = ({ handleModalOpen, flightsInfo, isLoading = false }) => {
               <div key={index}>
                 <FlightComponent
                   {...flight}
+                  index={index}
                   handleModalOpen={handleModalOpen}
+                  onSelect={handleFlightSelect}
                 />
               </div>
             ))}

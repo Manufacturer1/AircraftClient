@@ -42,7 +42,6 @@ const FilterTable = () => {
               <span className="text-neutral-700 text-sm">Direct Flights</span>
             }
           />
-          <span className="text-sm font-normal text-neutral-500">30 USD</span>
         </div>
 
         <div className="flex items-center justify-between">
@@ -50,33 +49,7 @@ const FilterTable = () => {
             control={<Checkbox color="success" />}
             label={<span className="text-neutral-700 text-sm">One Stop</span>}
           />
-          <span className="text-neutral-500 text-sm font-normal">45 USD</span>
         </div>
-      </div>
-
-      <hr className="border-1 border-solid border-[#DEE1E6FF] w-full mb-5" />
-
-      <div className="flex justify-between items-center mb-5">
-        <p className="text-base text-neutral-900 font-bold">Transit point</p>
-        <img
-          className="cursor-pointer"
-          src={chevronUpIcon}
-          alt="chevron up icon"
-        />
-      </div>
-
-      <div className="flex flex-col space-y-[-10px] mb-5">
-        <FormControlLabel
-          control={<Checkbox color="success" />}
-          label={<span className="text-neutral-700 text-sm">Osaka (ITM)</span>}
-        />
-
-        <FormControlLabel
-          control={<Checkbox color="success" />}
-          label={
-            <span className="text-neutral-700 text-sm">Kuala Lumpur (KUL)</span>
-          }
-        />
       </div>
 
       <hr className="border-1 border-solid border-[#DEE1E6FF] w-full mb-5" />

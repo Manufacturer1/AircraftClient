@@ -1,25 +1,22 @@
 import axios from 'axios';
 
+
+
 const API_URL = import.meta.env.VITE_FLIGHT_API_URL;
 
 export const searchFlights = async (searchData) => {
     try {
-       
-        const formatDate = (date) => {
-            const d = new Date(date);
-            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        };
-
-        const departureDate = formatDate(searchData.departureDate);
-
+        
+        console.log(searchData);
+        
         const response = await axios.post(`${API_URL}/search`, {
             origin: searchData?.origin,
             destination: searchData?.destination,
             classType: searchData?.travelClass,
             passengerNumber: searchData?.passengerCount,
             tripType: searchData?.tripType,
-            departureDate: departureDate,
-            returnDate: searchData.returnDate === null ? null : formatDate(searchData.returnDate)
+            departureDate: searchData.departureDate,
+            returnDate: searchData.returnDate 
         });
 
         return response.data;
@@ -30,11 +27,13 @@ export const searchFlights = async (searchData) => {
             const validationErrors = Object.values(error.response.data.errors)
                 .flat()
                 .join(', ');
+                console.log("validation error");
             throw new Error(`Validation error: ${validationErrors}`);
         }
         
         // Handle not found (404)
         if (error.response?.status === 404) {
+            console.log("not found");
             throw new Error('Flight not found');
         }
 

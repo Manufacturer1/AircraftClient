@@ -22,7 +22,7 @@ const FindInput = ({
   const calendarRef = useRef(null);
 
   useEffect(() => {
-    if (departureDate && returnDate) {
+    if (departureDate && returnDate && tripType === "RoundTrip") {
       setDateValue(`${formatDate(departureDate)} - ${formatDate(returnDate)}`);
     } else if (departureDate) {
       setDateValue(formatDate(departureDate));
