@@ -1,8 +1,16 @@
 import sortIcon from "../../images/sortIcon.svg";
 import chevronUpIcon from "../../images/chevronUp.svg";
 import PriceFilter from "./priceFilterComponent";
+import { useState } from "react";
 
-const SortTable = () => {
+const SortTable = ({ onSortValueChange }) => {
+  const [value, setValue] = useState("");
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="bg-white rounded-md shadow-md p-3 mb-6">
       <div className="flex justify-between mb-5">
@@ -11,6 +19,10 @@ const SortTable = () => {
           <span className="text-xl font-bold text-neutral-700">Sort by</span>
         </div>
         <button
+          onClick={() => {
+            setValue("");
+            onSortValueChange("");
+          }}
           className="text-base 
         font-normal
          text-neutral-900 
@@ -26,16 +38,26 @@ const SortTable = () => {
         </button>
       </div>
       <hr className="border-1 border-solid border-[#DEE1E6FF] w-full mb-5" />
-      <div className="flex justify-between items-center mb-5">
+      <div
+        onClick={toggleExpand}
+        className="flex justify-between items-center mb-5"
+      >
         <p className="text-base text-neutral-900 font-bold">Price</p>
         <img
-          className="cursor-pointer"
+          className={`transition-transform duration-200 ${
+            isExpanded ? "rotate-180" : ""
+          } cursor-pointer`}
           src={chevronUpIcon}
           alt="chevron up icon "
         />
       </div>
-
-      <PriceFilter />
+      {isExpanded && (
+        <PriceFilter
+          onValueChange={onSortValueChange}
+          value={value}
+          setValue={setValue}
+        />
+      )}
     </div>
   );
 };

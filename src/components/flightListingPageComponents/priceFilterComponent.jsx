@@ -4,13 +4,11 @@ import {
   FormControlLabel,
   FormControl,
 } from "@mui/material";
-import { useState } from "react";
 
-const PriceFilter = () => {
-  const [value, setValue] = useState("");
-
+const PriceFilter = ({ onValueChange, value, setValue }) => {
   const handleChange = (event) => {
     setValue(value === event.target.value ? "" : event.target.value);
+    onValueChange(event.target.value);
   };
 
   return (

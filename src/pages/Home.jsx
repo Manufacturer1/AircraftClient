@@ -93,7 +93,8 @@ const Home = () => {
     setSearchData((prev) => ({
       ...prev,
       tripType: type,
-      returnDate: type === "OneWay" ? null : prev.returnDate,
+      returnDate:
+        type === "OneWay" ? searchData.departureDate : searchData.returnDate,
     }));
   };
 
@@ -101,6 +102,8 @@ const Home = () => {
     setSearchData((prev) => ({
       ...prev,
       departureDate: date,
+      returnDate:
+        searchData.tripType === "OneWay" ? date : searchData.returnDate,
     }));
 
     setShowDepartureCalendar(false);
@@ -109,7 +112,7 @@ const Home = () => {
   const handleReturnDateSelect = (date) => {
     setSearchData((prev) => ({
       ...prev,
-      returnDate: date,
+      returnDate: date ? date : searchData.departureDate,
     }));
     setShowReturnCalendar(false);
   };
@@ -142,7 +145,7 @@ const Home = () => {
       setSearchData((prev) => ({
         ...prev,
         departureDate: format(new Date(), "d, MMM yyyy"),
-        returnDate: format(new Date(), "d, MMM, yyyy"),
+        returnDate: format(new Date(), "d MMM yyyy"),
       }));
     }
   }, []);
@@ -175,7 +178,7 @@ const Home = () => {
       returnDate:
         searchData.returnDate === null
           ? formatDate(new Date())
-          : searchData.returnDate,
+          : formatDate(searchData.returnDate),
     };
     setSearchData(updatedSearchData);
 

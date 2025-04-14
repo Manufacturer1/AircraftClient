@@ -24,6 +24,7 @@ import { getFlightByFlightNumber } from "../services/flightService";
 import { getBaggageById } from "../services/baggageService";
 import { searchFlights } from "../services/flightService";
 import { format } from "date-fns";
+import { searchFlightsWithoutDate } from "../services/flightService";
 
 const convertToDisplayFormat = (date) => {
   if (!date) return null;
@@ -38,10 +39,39 @@ const convertToDisplayFormat = (date) => {
 
   return date;
 };
+const compareDates = (flightDate, scheduleDate) => {
+  const cleanedFlightDate = flightDate.substring(0, 10);
+  const [flightYear, flightMonth, flightDay] = cleanedFlightDate.split("-");
+  const [scheduleday, scheduleMonth] = format(scheduleDate, "dd-MM").split("-");
+
+  if (
+    parseInt(flightMonth) === parseInt(scheduleMonth) &&
+    parseInt(flightDay) === parseInt(scheduleday)
+  ) {
+    return true;
+  }
+  return false;
+};
+
+const createDateSchedule = () => {
+  const datesMap = [];
+
+  for (let i = 0; i < 5; i++) {
+    const data = {
+      date: format(new Date().setDate(new Date().getDate() + i), "EEE, d MMM"),
+      price: "",
+    };
+    datesMap.push(data);
+  }
+
+  return datesMap;
+};
 
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [schedule, setSchedule] = useState(createDateSchedule());
 
   const origin = searchParams.get("origin");
   const destination = searchParams.get("destination");
@@ -63,7 +93,6 @@ const FlightList = () => {
 
   const location = useLocation();
   const itineraryResults = location.state?.results || [];
-  const [loadingAirlines, setLoadingAirlines] = useState(false);
   const [flights, setFlights] = useState([]);
   const [apiFlights, setApiFlights] = useState([]);
   const [baggages, setBaggages] = useState([]);
@@ -72,6 +101,17 @@ const FlightList = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const apiTimeoutRef = useRef(null);
+  const flightsPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [flightsWithoutDate, setFlightsWithoutDate] = useState([]);
+
+  const indexOfLastFlight = currentPage * flightsPerPage;
+  const indexOfFirstFlight = indexOfLastFlight - flightsPerPage;
+  const currentFlights = apiFlights.slice(
+    indexOfFirstFlight,
+    indexOfLastFlight
+  );
 
   const updateSearchParams = (formData) => {
     const newSearchParams = new URLSearchParams();
@@ -95,8 +135,7 @@ const FlightList = () => {
   }, []);
   const fetchData = async () => {
     try {
-      setLoadingAirlines(true);
-
+      setLoading(false);
       const flightNumbers = itineraries.flatMap((it) =>
         it.flights.map((flight) => flight.flightNumber)
       );
@@ -155,16 +194,72 @@ const FlightList = () => {
           flightPrice: itinerary.itinerary.totalPrice || 0,
           stopsNumber: itinerary.flights.length - 1,
           bagCapacity: baggage.checkedWeightLimitKg || 0,
+          departureDate: itinerary.itinerary.departureDate,
         };
       });
 
       setApiFlights(mergedFlights);
+      searchForAllFlightsWithoutDate();
 
-      await delay(2000);
+      if (itineraries.length > 0) {
+        const firstFlightDate = itineraries[0].itinerary.departureDate;
+        const plannerIndex = schedule.findIndex((item) =>
+          compareDates(firstFlightDate, item.date)
+        );
+        if (plannerIndex !== -1) {
+          setSelectedIndex(plannerIndex);
+        }
+      }
     } catch (error) {
       console.error("Error fetching flight data:", error);
     } finally {
-      setLoadingAirlines(false);
+      setLoading(false);
+    }
+  };
+
+  const searchForAllFlightsWithoutDate = async () => {
+    try {
+      const allFlights = await searchFlightsWithoutDate(formData);
+      setFlightsWithoutDate(allFlights);
+      setDateOnPlanner(allFlights);
+    } catch (error) {
+      console.log(error.message);
+      setLoading(false);
+    }
+  };
+
+  const setDateOnPlanner = (flights) => {
+    if (flights.length > 0) {
+      const updatedSchedule = schedule.map((dateItem) => {
+        const matchingFlights = flights.filter((flight) => {
+          return compareDates(flight.itinerary.departureDate, dateItem.date);
+        });
+
+        if (matchingFlights.length > 0) {
+          const minPrice = Math.min(
+            ...matchingFlights.map((f) => parseFloat(f.itinerary.totalPrice))
+          );
+          return {
+            ...dateItem,
+            price: `${minPrice.toFixed(1)} USD`,
+            hasFlights: true,
+          };
+        }
+        return {
+          ...dateItem,
+          price: "No Flight",
+          hasFlights: false,
+        };
+      });
+
+      setSchedule(updatedSchedule);
+    } else {
+      const resetSchedule = schedule.map((dateItem) => ({
+        ...dateItem,
+        price: "No Flight",
+        hasFlights: false,
+      }));
+      setSchedule(resetSchedule);
     }
   };
   useEffect(() => {
@@ -172,15 +267,8 @@ const FlightList = () => {
   }, [itineraries]);
 
   const delay = (ms) => {
-    if (apiTimeoutRef.current) {
-      clearTimeout(apiTimeoutRef.current);
-    }
-
     return new Promise((resolve) => {
-      apiTimeoutRef.current = setTimeout(() => {
-        resolve();
-        apiTimeoutRef.current = null;
-      }, ms);
+      setTimeout(resolve, ms);
     });
   };
 
@@ -190,8 +278,18 @@ const FlightList = () => {
     return cloudIcon;
   };
   const getAirlineBgColor = (bgColor) => {
-    const airlineBgColor = `bg-[${bgColor}]`;
-    return airlineBgColor;
+    switch (bgColor) {
+      case "#6ECFBDFF":
+        return "bg-[#6ECFBDFF]";
+      case "#FF912BFF":
+        return "bg-[#FF912BFF]";
+      case "#0D78C9FF":
+        return "bg-[#0D78C9FF]";
+      case "#E5343AFF":
+        return "bg-[#E5343AFF]";
+      default:
+        return "bg-[#0D78C9FF]";
+    }
   };
 
   const tripTypeIcon = tripType === "RoundTrip" ? compareArrows : rightArrow;
@@ -276,6 +374,7 @@ const FlightList = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setCurrentPage(1);
 
     if (!formData.destination || !formData.origin) {
       setError("Please enter both origin and destination.");
@@ -302,15 +401,55 @@ const FlightList = () => {
 
     try {
       const searchData = await searchFlights(apiFormattedData);
+
+      if (!searchData || searchData.length === 0) {
+        setLoading(false);
+        setError("No flights found for your selected criteria.");
+        return;
+      }
       setItineraries(searchData);
+      await searchForAllFlightsWithoutDate();
     } catch (error) {
       setError(error.message);
       setItineraries([]);
+      setDateOnPlanner([]);
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (origin && destination && departureDate) {
+      const fetchInitialResults = async () => {
+        try {
+          setLoading(true);
 
+          const apiFormattedData = {
+            origin,
+            destination,
+            departureDate: convertToApiFormat(departureDate),
+            returnDate:
+              tripType === "OneWay"
+                ? convertToApiFormat(departureDate)
+                : returnDate
+                ? convertToApiFormat(returnDate)
+                : null,
+            passengerCount: passengerCount ? parseInt(passengerCount) : 1,
+            travelClass: travelClass || "Economy",
+            tripType: tripType || "OneWay",
+          };
+
+          const searchData = await searchFlights(apiFormattedData);
+          searchForAllFlightsWithoutDate();
+          setItineraries(searchData);
+        } catch (error) {
+          console.error("Error refetching results:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchInitialResults();
+    }
+  }, []);
   useEffect(() => {
     if (openModal) {
       document.body.style.overflow = "hidden";
@@ -323,16 +462,35 @@ const FlightList = () => {
     };
   }, [openModal]);
 
-  useEffect(() => {
-    return () => {
-      if (apiTimeoutRef.current) {
-        clearTimeout(apiTimeoutRef.current);
-      }
-    };
-  }, []);
+  const handleDateSelectFromPlanner = (selectedDate) => {
+    const filteredFlights = flightsWithoutDate.filter((item) => {
+      return compareDates(item.itinerary.departureDate, selectedDate);
+    });
+
+    setItineraries(filteredFlights);
+  };
   useEffect(() => {
     updateSearchParams(formData);
   }, []);
+
+  const handleOnSortValueChange = (sortValue) => {
+    if (sortValue && sortValue === "lowest") {
+      const sortedFlights = [...itineraries].sort(
+        (a, b) =>
+          parseFloat(a.itinerary.totalPrice) -
+          parseFloat(b.itinerary.totalPrice)
+      );
+      setItineraries(sortedFlights);
+    } else if (sortValue && sortValue === "highest") {
+      const sortedFlights = [...itineraries].sort(
+        (a, b) =>
+          parseFloat(b.itinerary.totalPrice) -
+          parseFloat(a.itinerary.totalPrice)
+      );
+      setItineraries(sortedFlights);
+    }
+  };
+
   return (
     <section className="px-20 py-5">
       <div className="mb-5">
@@ -341,7 +499,7 @@ const FlightList = () => {
 
       <div className="flex gap-5">
         <div className="basis-[25%]">
-          <SortTable />
+          <SortTable onSortValueChange={handleOnSortValueChange} />
           <FilterTable />
         </div>
         <div className="basis-[75%]">
@@ -432,16 +590,22 @@ const FlightList = () => {
           <div className="mb-10">
             <Planner
               handleModalOpen={handleModalOpen}
-              flightsInfo={apiFlights}
-              isLoading={loadingAirlines}
+              flightsInfo={currentFlights}
+              loading={loading}
               onFlightSelect={setSelectedFlightIndex}
+              selectedIndex={selectedIndex}
+              setSelectedIndex={setSelectedIndex}
+              schedule={schedule}
+              error={error}
+              onDateSelect={handleDateSelectFromPlanner}
             />
           </div>
 
-          {/*Pagination */}
           <div className="mb-16 flex justify-end">
             <Pagination
-              count={apiFlights.length}
+              count={Math.ceil(apiFlights.length / flightsPerPage)}
+              page={currentPage}
+              onChange={(event, page) => setCurrentPage(page)}
               variant="outlined"
               shape="rounded"
               sx={{

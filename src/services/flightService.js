@@ -7,7 +7,6 @@ const API_URL = import.meta.env.VITE_FLIGHT_API_URL;
 export const searchFlights = async (searchData) => {
     try {
         
-        console.log(searchData);
         
         const response = await axios.post(`${API_URL}/search`, {
             origin: searchData?.origin,
@@ -65,3 +64,40 @@ export const getFlightByFlightNumber = async (flightNumber) => {
         throw new Error(error.message || "Failed to fetch flights");
     }
 };
+
+export const searchFlightsWithoutDate = async (searchData) =>{
+    try {
+        const response = await axios.post(`${API_URL}/search?withoutDate=true`, {
+            origin: searchData?.origin,
+            destination: searchData?.destination,
+            classType: searchData?.travelClass,
+            passengerNumber: searchData?.passengerCount,
+            tripType: searchData?.tripType,
+        });
+
+        return response.data;
+    }
+    catch(error) {
+        // Handle validation errors (400 BadRequest with ModelState)
+        if (error.response?.status === 400 && error.response?.data?.errors) {
+            const validationErrors = Object.values(error.response.data.errors)
+                .flat()
+                .join(', ');
+                console.log("validation error");
+            throw new Error(`Validation error: ${validationErrors}`);
+        }
+        
+        // Handle not found (404)
+        if (error.response?.status === 404) {
+            console.log("not found");
+            throw new Error('Flight not found');
+        }
+
+   
+        if (error.response?.data?.Message) {
+            throw new Error(error.response.data.Message);
+        }
+        console.error("Error searching flights: ", error);
+        throw new Error(error.message || "Failed to fetch flights");
+    }
+}
