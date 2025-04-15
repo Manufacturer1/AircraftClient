@@ -66,7 +66,65 @@ const createDateSchedule = () => {
 
   return datesMap;
 };
+const tripTypeToLabel = {
+  OneWay: "One way",
+  RoundTrip: "Round trip",
+};
 
+const labelToTripType = {
+  "One way": "OneWay",
+  "Round trip": "RoundTrip",
+};
+const travelClassToLabel = {
+  Economy: "Economy",
+  FirstClass: "First Class",
+};
+
+const labelToTravelClass = {
+  Economy: "Economy",
+  "First Class": "FirstClass",
+};
+
+const getAirlineIcon = (airlineIconName) => {
+  if (airlineIconName)
+    return `${import.meta.env.VITE_RESOURCE_PATH_URL}/${airlineIconName}`;
+  return cloudIcon;
+};
+const getAirlineBgColor = (bgColor) => {
+  switch (bgColor) {
+    case "#6ECFBDFF":
+      return "bg-[#6ECFBDFF]";
+    case "#FF912BFF":
+      return "bg-[#FF912BFF]";
+    case "#0D78C9FF":
+      return "bg-[#0D78C9FF]";
+    case "#E5343AFF":
+      return "bg-[#E5343AFF]";
+    default:
+      return "bg-[#0D78C9FF]";
+  }
+};
+const formatDateToString = (date) => {
+  if (!date) return null;
+  if (typeof date === "string") return date;
+
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+const convertToApiFormat = (date) => {
+  if (!date) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
+  if (date.toString().includes("/")) {
+    const [day, month, year] = date.split("/");
+    return `${year}-${month}-${day}`;
+  }
+
+  return date;
+};
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -100,11 +158,13 @@ const FlightList = () => {
   const [itineraries, setItineraries] = useState(itineraryResults);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const apiTimeoutRef = useRef(null);
   const flightsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
 
   const [flightsWithoutDate, setFlightsWithoutDate] = useState([]);
+  const [unfilteredFlights, setUnfilteredFlights] = useState(itineraries);
+  const [transitFilter, setTransitFilter] = useState(null);
+  const [sortType, setSortType] = useState(null);
 
   const indexOfLastFlight = currentPage * flightsPerPage;
   const indexOfFirstFlight = indexOfLastFlight - flightsPerPage;
@@ -220,8 +280,9 @@ const FlightList = () => {
   const searchForAllFlightsWithoutDate = async () => {
     try {
       const allFlights = await searchFlightsWithoutDate(formData);
-      setFlightsWithoutDate(allFlights);
-      setDateOnPlanner(allFlights);
+      const filteredFlights = filterFlightsByTransit(allFlights, transitFilter);
+      setFlightsWithoutDate(filteredFlights);
+      setDateOnPlanner(filteredFlights);
     } catch (error) {
       console.log(error.message);
       setLoading(false);
@@ -266,52 +327,8 @@ const FlightList = () => {
     fetchData();
   }, [itineraries]);
 
-  const delay = (ms) => {
-    return new Promise((resolve) => {
-      setTimeout(resolve, ms);
-    });
-  };
-
-  const getAirlineIcon = (airlineIconName) => {
-    if (airlineIconName)
-      return `${import.meta.env.VITE_RESOURCE_PATH_URL}/${airlineIconName}`;
-    return cloudIcon;
-  };
-  const getAirlineBgColor = (bgColor) => {
-    switch (bgColor) {
-      case "#6ECFBDFF":
-        return "bg-[#6ECFBDFF]";
-      case "#FF912BFF":
-        return "bg-[#FF912BFF]";
-      case "#0D78C9FF":
-        return "bg-[#0D78C9FF]";
-      case "#E5343AFF":
-        return "bg-[#E5343AFF]";
-      default:
-        return "bg-[#0D78C9FF]";
-    }
-  };
-
   const tripTypeIcon = tripType === "RoundTrip" ? compareArrows : rightArrow;
 
-  const tripTypeToLabel = {
-    OneWay: "One way",
-    RoundTrip: "Round trip",
-  };
-
-  const labelToTripType = {
-    "One way": "OneWay",
-    "Round trip": "RoundTrip",
-  };
-  const travelClassToLabel = {
-    Economy: "Economy",
-    FirstClass: "First Class",
-  };
-
-  const labelToTravelClass = {
-    Economy: "Economy",
-    "First Class": "FirstClass",
-  };
   const handleTripTypeChange = (selectedLabel) => {
     const serverFormat = labelToTripType[selectedLabel];
     const newFormData = {
@@ -340,27 +357,6 @@ const FlightList = () => {
     updateSearchParams(newFormData);
   };
 
-  const formatDateToString = (date) => {
-    if (!date) return null;
-    if (typeof date === "string") return date;
-
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-  };
-  const convertToApiFormat = (date) => {
-    if (!date) return null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return date;
-    }
-    if (date.toString().includes("/")) {
-      const [day, month, year] = date.split("/");
-      return `${year}-${month}-${day}`;
-    }
-
-    return date;
-  };
   const handleDateChange = (date, isReturnDate = false) => {
     const formattedDate = formatDateToString(date);
     const newFormData = isReturnDate
@@ -375,6 +371,7 @@ const FlightList = () => {
     setLoading(true);
     setError("");
     setCurrentPage(1);
+    setItineraries([]);
 
     if (!formData.destination || !formData.origin) {
       setError("Please enter both origin and destination.");
@@ -401,22 +398,26 @@ const FlightList = () => {
 
     try {
       const searchData = await searchFlights(apiFormattedData);
+      const filteredData = filterFlightsByTransit(searchData, transitFilter);
 
       if (!searchData || searchData.length === 0) {
         setLoading(false);
         setError("No flights found for your selected criteria.");
         return;
       }
-      setItineraries(searchData);
-      await searchForAllFlightsWithoutDate();
+      setItineraries(filteredData);
+      setUnfilteredFlights(searchData);
+      setDateOnPlanner(filteredData);
     } catch (error) {
       setError(error.message);
       setItineraries([]);
       setDateOnPlanner([]);
+      setUnfilteredFlights([]);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     if (origin && destination && departureDate) {
       const fetchInitialResults = async () => {
@@ -439,8 +440,13 @@ const FlightList = () => {
           };
 
           const searchData = await searchFlights(apiFormattedData);
+          const filteredData = filterFlightsByTransit(
+            searchData,
+            transitFilter
+          );
+          setItineraries(filteredData);
+          setUnfilteredFlights(searchData);
           searchForAllFlightsWithoutDate();
-          setItineraries(searchData);
         } catch (error) {
           console.error("Error refetching results:", error);
         } finally {
@@ -461,34 +467,100 @@ const FlightList = () => {
       document.body.style.overflow = "auto";
     };
   }, [openModal]);
-
   const handleDateSelectFromPlanner = (selectedDate) => {
-    const filteredFlights = flightsWithoutDate.filter((item) => {
+    const dateFiltered = flightsWithoutDate.filter((item) => {
       return compareDates(item.itinerary.departureDate, selectedDate);
     });
 
-    setItineraries(filteredFlights);
+    const transitFiltered = filterFlightsByTransit(dateFiltered, transitFilter);
+
+    setItineraries(transitFiltered);
+    setUnfilteredFlights(transitFiltered);
   };
   useEffect(() => {
     updateSearchParams(formData);
   }, []);
 
-  const handleOnSortValueChange = (sortValue) => {
-    if (sortValue && sortValue === "lowest") {
-      const sortedFlights = [...itineraries].sort(
+  const sortFlights = (flights, sortValue) => {
+    const cloned = [...flights];
+
+    if (sortValue === "lowest") {
+      return cloned.sort(
         (a, b) =>
           parseFloat(a.itinerary.totalPrice) -
           parseFloat(b.itinerary.totalPrice)
       );
-      setItineraries(sortedFlights);
-    } else if (sortValue && sortValue === "highest") {
-      const sortedFlights = [...itineraries].sort(
+    } else if (sortValue === "highest") {
+      return cloned.sort(
         (a, b) =>
           parseFloat(b.itinerary.totalPrice) -
           parseFloat(a.itinerary.totalPrice)
       );
-      setItineraries(sortedFlights);
     }
+
+    return cloned;
+  };
+
+  const handleOnSortValueChange = (sortValue) => {
+    setSortType(sortValue);
+    const sortedFlights = sortFlights(itineraries, sortValue);
+    setItineraries(sortedFlights);
+  };
+
+  const filterFlightsByTransit = (flights, filterType) => {
+    if (!filterType || filterType === "") return flights;
+
+    return flights.filter((itinerary) => {
+      const stops = itinerary.flights.length - 1;
+      if (filterType === "direct") return stops === 0;
+      if (filterType === "one-stop") {
+        return stops > 0;
+      }
+
+      return true;
+    });
+  };
+
+  const handleTransitFilter = async (selectedTransit) => {
+    setTransitFilter(selectedTransit);
+    // if (selectedTransit === "") {
+    //   setFlightsWithoutDate(await searchFlightsWithoutDate(formData));
+    //   setDateOnPlanner(unfilteredFlights);
+    //   setItineraries(unfilteredFlights);
+    //   handleDateSelectFromPlanner(schedule[selectedIndex].date);
+    //   return;
+    // }
+    const apiFormattedData = {
+      ...formData,
+      departureDate: convertToApiFormat(formData.departureDate),
+      returnDate:
+        formData.tripType === "OneWay"
+          ? convertToApiFormat(formData.departureDate)
+          : formData.returnDate
+          ? convertToApiFormat(formData.returnDate)
+          : null,
+    };
+    setFormData(apiFormattedData);
+
+    let latestUnfilteredFlights = await searchFlights(apiFormattedData);
+    if (sortType) {
+      latestUnfilteredFlights = sortFlights(latestUnfilteredFlights, sortType);
+    }
+    setUnfilteredFlights(latestUnfilteredFlights);
+
+    const filteredItineraries = filterFlightsByTransit(
+      latestUnfilteredFlights,
+      selectedTransit
+    );
+
+    const filteredFlightsWithoutDate = filterFlightsByTransit(
+      await searchFlightsWithoutDate(formData),
+      selectedTransit
+    );
+
+    setItineraries(filteredItineraries);
+    setFlightsWithoutDate(filteredFlightsWithoutDate);
+    setDateOnPlanner(filteredFlightsWithoutDate);
   };
 
   return (
@@ -500,7 +572,7 @@ const FlightList = () => {
       <div className="flex gap-5">
         <div className="basis-[25%]">
           <SortTable onSortValueChange={handleOnSortValueChange} />
-          <FilterTable />
+          <FilterTable onTransitChange={handleTransitFilter} />
         </div>
         <div className="basis-[75%]">
           <div className="flex items-center gap-5 mb-5">

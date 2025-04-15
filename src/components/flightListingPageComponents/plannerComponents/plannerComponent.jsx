@@ -24,7 +24,6 @@ const Planner = ({
     }
     setSelectedIndex(index);
   };
-
   return (
     <div>
       {/* Date Tabs */}
