@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
-import { decodeToken, getTokenExpiration } from "../utils/token";
+import { decodeToken, getTokenExpiration } from "../utils/tokenUtils/token";
 
 const AuthContext = createContext();
 

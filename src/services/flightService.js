@@ -17,6 +17,7 @@ export const searchFlights = async (searchData) => {
             departureDate: searchData.departureDate,
             returnDate: searchData.returnDate 
         });
+    
 
         return response.data;
     }

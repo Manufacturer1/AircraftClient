@@ -1,24 +1,43 @@
 import FlightDuration from "./flightDurationComponent";
+import { Tooltip } from "react-tooltip";
+import "react-tooltip/dist/react-tooltip.css";
 
-const FlightDetails = ({ flightDetails, travelInfo }) => {
+const FlightDetails = ({ flightDetails }) => {
+  const getDepartureTime = () => {
+    const departureTime = flightDetails.departureTime;
+    return departureTime || "00:00";
+  };
+  const getArrivalTime = () => {
+    const arrivalTime = flightDetails.arrivalTime;
+
+    return arrivalTime || "00:00";
+  };
+
   return (
     <div className="w-full">
+      <Tooltip
+        id="amenity-tooltip"
+        className="z-50 custom-tooltip"
+        place="top"
+        effect="solid"
+      />
       <div className="flex w-full">
         {/*Flght duration representation*/}
         <div className="w-[20%]">
           <FlightDuration
-            departureTime={flightDetails.flightDepartureTime}
-            arrivalTime={flightDetails.flightArrivalTime}
+            departureTime={getDepartureTime()}
+            arrivalTime={getArrivalTime()}
           />
         </div>
         {/*Flight info*/}
         <div className="flex flex-col justify-between w-[80%]">
           <div className="flex flex-col gap-1">
             <h3 className="font-medium text-xl text-neutral-800">
-              {travelInfo.departureCity}
+              {flightDetails.origin}{" "}
+              <span>({flightDetails.originAirport.code})</span>
             </h3>
             <span className="text-base text-neutral-500">
-              {travelInfo.departureAirport}
+              {flightDetails.originAirport.name}
             </span>
           </div>
           <div className="flex flex-col gap-4">
@@ -52,27 +71,30 @@ const FlightDetails = ({ flightDetails, travelInfo }) => {
                   />
                 </svg>
                 <span className="text-[#0EA776FF] text-base font-medium flex items-center gap-4">
-                  {travelInfo.ticketNumber}
+                  {flightDetails.flightNumber}
                   <div className="w-1.5 h-1.5 bg-[#11D396FF] rounded-full"></div>
-                  <span className="font-normal">{travelInfo.classType}</span>
+                  <span className="font-normal">{flightDetails.classType}</span>
                 </span>
               </div>
               <div className="flex gap-4">
-                {travelInfo.hasAmenities &&
-                  travelInfo.amenities.map((item, index) => (
-                    <button
-                      className="w-8 h-8 flex items-center
-                       justify-center bg-[#11D396FF] 
-                       rounded-full hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] transition-all duration-150"
-                      key={index}
-                    >
-                      <img
-                        className="block w-5 h-5"
-                        src={item}
-                        alt="amenity icon"
-                      />
-                    </button>
-                  ))}
+                {flightDetails.amenities.length > 0 &&
+                  flightDetails.amenities.map((item, index) => {
+                    return (
+                      <button
+                        key={index}
+                        className="w-8 h-8 flex items-center justify-center bg-[#11D396FF] rounded-full 
+                                 hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] transition-all duration-150"
+                        data-tooltip-id="amenity-tooltip"
+                        data-tooltip-content={item.description || item.name}
+                      >
+                        <img
+                          className="block w-5 h-5"
+                          src={item.amenityIcon}
+                          alt={item.name}
+                        />
+                      </button>
+                    );
+                  })}
               </div>
             </div>
 
@@ -98,7 +120,8 @@ const FlightDetails = ({ flightDetails, travelInfo }) => {
                     Baggage
                     <div className="w-1.5 h-1.5 bg-[#11D396FF] rounded-full"></div>
                     <span className="text-neutral-600 text-base">
-                      {travelInfo.baggageNr} x {flightDetails.bagCapacity} kg
+                      {flightDetails.checkedBags} x {flightDetails.bagCapacity}{" "}
+                      kg
                     </span>
                   </span>
                 </div>
@@ -107,7 +130,8 @@ const FlightDetails = ({ flightDetails, travelInfo }) => {
                   Cabin Baggage
                   <div className="w-1.5 h-1.5 bg-[#11D396FF] rounded-full"></div>
                   <span className="text-neutral-600 text-base">
-                    {travelInfo.cabinBagsNr} x {travelInfo.cabingBagsCapacity}
+                    {flightDetails.freeCabinBags} x{" "}
+                    {flightDetails.cabinWeightLimitKg}
                     {" kg"}
                   </span>
                 </span>
@@ -131,31 +155,32 @@ const FlightDetails = ({ flightDetails, travelInfo }) => {
                     </g>
                   </svg>
                   <span className="text-[#0EA776FF] font-normal flex items-center gap-4">
-                    {travelInfo.plane}
+                    {flightDetails.plane.name}
                     <div className="w-1.5 h-1.5 bg-[#11D396FF] rounded-full"></div>
                     <span className="text-neutral-600 text-base">
-                      {travelInfo.planeModel}
+                      {flightDetails.plane.model}
                     </span>
                   </span>
                 </div>
 
                 <span className="text-neutral-500 font-normal flex items-center gap-4 ml-6">
                   <span className="text-neutral-600 text-base">
-                    {travelInfo.seatLayout} seat layout
+                    {flightDetails.plane.seatLayout} seat layout
                   </span>
                 </span>
                 <span className="ml-6 text-neutral-500">
-                  {travelInfo.seatPitchInches} inches Seat pitch (standart)
+                  {flightDetails.plane.seatPitch} inches Seat pitch (standart)
                 </span>
               </div>
             </div>
           </div>
           <div className="mb-[-30px]">
             <h3 className="font-medium text-xl text-neutral-800">
-              {travelInfo.arrivalCity}
+              {flightDetails.destination}{" "}
+              <span>({flightDetails.destinationAirport.code})</span>
             </h3>
             <span className="text-base text-neutral-500 ">
-              {travelInfo.arrivalAirport}
+              {flightDetails.destinationAirport.name}
             </span>
           </div>
         </div>

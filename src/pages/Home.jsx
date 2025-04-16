@@ -18,7 +18,6 @@ import calendarIcon from "../images/calendarIcon.svg";
 import orangeCalendarIcon from "../images/orangeCalendarIcon.svg";
 import earthImage from "../images/earth_image.png";
 import pinIcon from "../images/pin.svg";
-import americanMap from "../images/americanMap.png";
 import sunriseIcon from "../images/sunriseIcon.svg";
 
 import { searchFlights } from "../services/flightService";

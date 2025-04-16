@@ -19,6 +19,15 @@ const priceDetails = {
 };
 
 const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
+  const createFlightDetails = (itinerary, flightInfo) => {
+    const { flights, ...rest } = itinerary;
+    const { ...flight } = flightInfo;
+    return {
+      ...rest,
+      ...flight,
+    };
+  };
+
   const travelInfo = [
     {
       departureCity: "Houston (HOU)",
@@ -315,17 +324,28 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
           ))}
         </div>
         {/*Flight details section*/}
+
         {option === 0 && (
           <div className="flex flex-col gap-16 mb-5 bg-[#FAFAFBFF] p-4 pb-14">
-            <FlightDetails
-              flightDetails={flightDetails}
-              travelInfo={travelInfo[0]}
-            />
-            <InfoAlert city={travelInfo[0].arrivalCity} time={"02:00 PM"} />
-            <FlightDetails
-              flightDetails={flightDetails}
-              travelInfo={travelInfo[1]}
-            />
+            {flightDetails.flights.map((flight, index) => (
+              <div key={index}>
+                <FlightDetails
+                  flightDetails={createFlightDetails(flightDetails, flight)}
+                  travelInfo={travelInfo[1]}
+                />
+
+                {index < flightDetails.flights.length - 1 && (
+                  <div className="mt-14 mb-0">
+                    <InfoAlert
+                      city={flight.destination}
+                      time={
+                        flightDetails.hasStops ? flightDetails.stopTime : ""
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
         {/*Flight benefits*/}

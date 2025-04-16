@@ -14,117 +14,34 @@ import unfoldIcon from "../images/unfoldIcon.svg";
 import searchIcon from "../images/searchOutlined.svg";
 import Planner from "../components/flightListingPageComponents/plannerComponents/plannerComponent";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import FlightModal from "../components/flightListingPageComponents/FlightModalComponents/flightDetailsModalComponent";
-import cloudIcon from "../images/soundCloud.svg";
 import compareArrows from "../images/material-compareArrows-Outlined.svg";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { getAirlineById } from "../services/airlineService";
-import { getFlightByFlightNumber } from "../services/flightService";
 import { getBaggageById } from "../services/baggageService";
 import { searchFlights } from "../services/flightService";
-import { format } from "date-fns";
 import { searchFlightsWithoutDate } from "../services/flightService";
+import { getPlaneById } from "../services/planeService";
+import { getAirportById } from "../services/airportService";
+import { getAllAmenities } from "../services/amenityService";
+import {
+  createDateSchedule,
+  convertToDisplayFormat,
+  compareDates,
+  tripTypeToLabel,
+  labelToTripType,
+  travelClassToLabel,
+  labelToTravelClass,
+  getAirlineIcon,
+  getAirlineBgColor,
+  formatDateToString,
+  convertToApiFormat,
+  getUniqueValues,
+  fetchAndMapById,
+  formatAmenityIcon,
+} from "../utils/flightUtils/flightUtils";
 
-const convertToDisplayFormat = (date) => {
-  if (!date) return null;
-
-  if (date.includes("/")) {
-    return date;
-  }
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    const [year, month, day] = date.split("-");
-    return `${day}/${month}/${year}`;
-  }
-
-  return date;
-};
-const compareDates = (flightDate, scheduleDate) => {
-  const cleanedFlightDate = flightDate.substring(0, 10);
-  const [flightYear, flightMonth, flightDay] = cleanedFlightDate.split("-");
-  const [scheduleday, scheduleMonth] = format(scheduleDate, "dd-MM").split("-");
-
-  if (
-    parseInt(flightMonth) === parseInt(scheduleMonth) &&
-    parseInt(flightDay) === parseInt(scheduleday)
-  ) {
-    return true;
-  }
-  return false;
-};
-
-const createDateSchedule = () => {
-  const datesMap = [];
-
-  for (let i = 0; i < 5; i++) {
-    const data = {
-      date: format(new Date().setDate(new Date().getDate() + i), "EEE, d MMM"),
-      price: "",
-    };
-    datesMap.push(data);
-  }
-
-  return datesMap;
-};
-const tripTypeToLabel = {
-  OneWay: "One way",
-  RoundTrip: "Round trip",
-};
-
-const labelToTripType = {
-  "One way": "OneWay",
-  "Round trip": "RoundTrip",
-};
-const travelClassToLabel = {
-  Economy: "Economy",
-  FirstClass: "First Class",
-};
-
-const labelToTravelClass = {
-  Economy: "Economy",
-  "First Class": "FirstClass",
-};
-
-const getAirlineIcon = (airlineIconName) => {
-  if (airlineIconName)
-    return `${import.meta.env.VITE_RESOURCE_PATH_URL}/${airlineIconName}`;
-  return cloudIcon;
-};
-const getAirlineBgColor = (bgColor) => {
-  switch (bgColor) {
-    case "#6ECFBDFF":
-      return "bg-[#6ECFBDFF]";
-    case "#FF912BFF":
-      return "bg-[#FF912BFF]";
-    case "#0D78C9FF":
-      return "bg-[#0D78C9FF]";
-    case "#E5343AFF":
-      return "bg-[#E5343AFF]";
-    default:
-      return "bg-[#0D78C9FF]";
-  }
-};
-const formatDateToString = (date) => {
-  if (!date) return null;
-  if (typeof date === "string") return date;
-
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
-const convertToApiFormat = (date) => {
-  if (!date) return null;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return date;
-  }
-  if (date.toString().includes("/")) {
-    const [day, month, year] = date.split("/");
-    return `${year}-${month}-${day}`;
-  }
-
-  return date;
-};
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -151,7 +68,6 @@ const FlightList = () => {
 
   const location = useLocation();
   const itineraryResults = location.state?.results || [];
-  const [flights, setFlights] = useState([]);
   const [apiFlights, setApiFlights] = useState([]);
   const [baggages, setBaggages] = useState([]);
   const [selectedFlightIndex, setSelectedFlightIndex] = useState(0);
@@ -190,71 +106,136 @@ const FlightList = () => {
 
     setSearchParams(newSearchParams);
   };
-  useEffect(() => {
-    window.scrollTo({ top: 500, behavior: "smooth" });
-  }, []);
+
   const fetchData = async () => {
     try {
       setLoading(false);
-      const flightNumbers = itineraries.flatMap((it) =>
-        it.flights.map((flight) => flight.flightNumber)
+      // 1. Fetch all airlines
+      const airlinesIds = getUniqueValues(
+        itineraries,
+        (it) => it.itinerary.airlineId
       );
 
-      const uniqueFlightNumbers = [...new Set(flightNumbers)];
-      const flightPromises = uniqueFlightNumbers.map((flightNumber) =>
-        getFlightByFlightNumber(flightNumber)
+      const airlinesMap = await fetchAndMapById(airlinesIds, getAirlineById);
+
+      // 2. Fetch all baggage policies
+      const baggageIds = getUniqueValues(
+        Object.values(airlinesMap),
+        (airline) => airline.baggagePolicyId
       );
-      const flights = await Promise.all(flightPromises);
-      setFlights(flights);
+      const baggageMap = await fetchAndMapById(baggageIds, getBaggageById);
 
-      // 2. Fetch all airlines
-      const airlinesIds = [
-        ...new Set(itineraries.map((it) => it.itinerary.airlineId)),
-      ];
-      const airlineResponses = await Promise.all(
-        airlinesIds.map((id) => getAirlineById(id))
-      );
-
-      // Create airline map
-      const airlinesMap = airlineResponses.reduce((acc, airline) => {
-        if (airline) acc[airline.id] = airline;
-        return acc;
-      }, {});
-
-      // 3. Fetch all baggage policies
-      const baggageIds = [
+      /// 3. Fetch all planes associated with a flight
+      const planeIds = [
         ...new Set(
-          airlineResponses
-            .map((airline) => airline.baggagePolicyId)
-            .filter(Boolean)
+          itineraries
+            .map((itinerary) => {
+              return getUniqueValues(itinerary.flights, (f) => f.planeId);
+            })
+            .flat()
         ),
       ];
-      const baggagePromises = baggageIds.map((id) => getBaggageById(id));
-      const baggageResponses = await Promise.all(baggagePromises);
-      setBaggages(baggageResponses);
 
-      // Create baggage map
-      const baggageMap = baggageResponses.reduce((acc, baggage) => {
-        if (baggage) acc[baggage.id] = baggage;
+      /// 4. Fetch all airports associated with a flight
+      const originAirportIds = [
+        ...new Set(
+          itineraries
+            .map((itinerary) => {
+              return getUniqueValues(
+                itinerary.flights,
+                (f) => f.originAirportId
+              );
+            })
+            .flat()
+        ),
+      ];
+
+      const destinationAirportIds = [
+        ...new Set(
+          itineraries
+            .map((itinerary) => {
+              return getUniqueValues(
+                itinerary.flights,
+                (f) => f.destinationAirportId
+              );
+            })
+            .flat()
+        ),
+      ];
+      const allAirportsIds = [
+        ...new Set(originAirportIds.concat(destinationAirportIds)),
+      ];
+
+      const aiportMap = await fetchAndMapById(allAirportsIds, getAirportById);
+
+      const planeMap = await fetchAndMapById(planeIds, getPlaneById);
+
+      /// 6. Amenities
+      const allAmenities = await getAllAmenities();
+
+      const amenitiesByFlight = allAmenities.reduce((acc, amenity) => {
+        amenity.flightAmenities?.forEach((flightAmenity) => {
+          if (!acc[flightAmenity.flightNumber]) {
+            acc[flightAmenity.flightNumber] = [];
+          }
+          acc[flightAmenity.flightNumber].push({
+            id: amenity.id,
+            name: amenity.name,
+            description: amenity.description,
+            amenityIcon: formatAmenityIcon(amenity.amenityIconUrl),
+          });
+        });
+
         return acc;
       }, {});
 
-      // 4. Merge all data
+      // 5. Merge all data
       const mergedFlights = itineraries.map((itinerary) => {
         const airline = airlinesMap[itinerary.itinerary.airlineId] || {};
         const baggage = baggageMap[airline.baggagePolicyId] || {};
+
+        const enrichedFlights = (itinerary.flights || []).map((flight) => {
+          const plane = planeMap[flight.planeId] || {};
+          const originAirport = aiportMap[flight.originAirportId] || {};
+          const destinationAirport =
+            aiportMap[flight.destinationAirportId] || {};
+
+          const amenities = amenitiesByFlight[flight.flightNumber] || [];
+
+          return {
+            ...flight,
+            plane,
+            originAirport: {
+              id: originAirport.id,
+              name: originAirport.name,
+              code: originAirport.code,
+            },
+            destinationAirport: {
+              id: destinationAirport.id,
+              name: destinationAirport.name,
+              code: destinationAirport.code,
+            },
+            amenities: amenities,
+          };
+        });
 
         return {
           airlineId: itinerary.itinerary.airlineId,
           airlineIcon: getAirlineIcon(airline.airlineImageUrl),
           airlineBgColor: getAirlineBgColor(airline.airlineBgColor),
           airlineName: airline.name || "Unknown Airline",
-          flightDepartureTime: itinerary.itinerary.departureTime,
-          flightArrivalTime: itinerary.itinerary.arrivalTime || "",
+          itineraryDepartureTime: itinerary.itinerary.departureTime,
+          itineraryArrivalTime: itinerary.itinerary.arrivalTime || "",
           flightPrice: itinerary.itinerary.totalPrice || 0,
           stopsNumber: itinerary.flights.length - 1,
           bagCapacity: baggage.checkedWeightLimitKg || 0,
+          checkedBags: baggage.freeCheckedBags || 0,
+          freeCabinBags: baggage.freeCabinBags || 0,
+          cabinWeightLimitKg: baggage.cabinWeightLimitKg || 0,
           departureDate: itinerary.itinerary.departureDate,
+          hasStops: itinerary.itinerary.hasStops || false,
+          stopTime: itinerary.itinerary.stopTime || "",
+          flights: enrichedFlights,
         };
       });
 
@@ -472,7 +453,10 @@ const FlightList = () => {
       return compareDates(item.itinerary.departureDate, selectedDate);
     });
 
-    const transitFiltered = filterFlightsByTransit(dateFiltered, transitFilter);
+    let transitFiltered = filterFlightsByTransit(dateFiltered, transitFilter);
+    if (sortType) {
+      transitFiltered = sortFlights(transitFiltered, sortType);
+    }
 
     setItineraries(transitFiltered);
     setUnfilteredFlights(transitFiltered);

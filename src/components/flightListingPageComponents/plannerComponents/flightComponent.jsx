@@ -7,8 +7,8 @@ const FlightComponent = ({
   airlineBgColor,
   airlineName,
   bagCapacity,
-  flightDepartureTime,
-  flightArrivalTime,
+  itineraryDepartureTime,
+  itineraryArrivalTime,
   flightPrice,
   stopsNumber = 0,
   handleModalOpen,
@@ -67,7 +67,8 @@ const FlightComponent = ({
         <div className="flex flex-col justify-center">
           <div className="flex items-center">
             <span className="text-neutral-900 font-semibold text-xl">
-              {parseTime(flightDepartureTime)} - {parseTime(flightArrivalTime)}
+              {parseTime(itineraryDepartureTime)} -{" "}
+              {parseTime(itineraryArrivalTime)}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-2">
@@ -77,7 +78,7 @@ const FlightComponent = ({
               alt="Duration icon"
             />
             <span className="text-neutral-700 font-normal text-base">
-              {calculateDuration(flightDepartureTime, flightArrivalTime)}
+              {calculateDuration(itineraryDepartureTime, itineraryArrivalTime)}
             </span>
           </div>
         </div>
