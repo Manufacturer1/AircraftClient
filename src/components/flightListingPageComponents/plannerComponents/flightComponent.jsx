@@ -3,13 +3,7 @@ import flightDepartureIcon from "../../../images/flightDeparture.svg";
 import timeLapseIcon from "../../../images/timeLapseIcon.svg";
 
 const FlightComponent = ({
-  airlineIcon,
-  airlineBgColor,
-  airlineName,
-  bagCapacity,
-  itineraryDepartureTime,
-  itineraryArrivalTime,
-  flightPrice,
+  flight,
   stopsNumber = 0,
   handleModalOpen,
   onSelect,
@@ -40,24 +34,23 @@ const FlightComponent = ({
       .toString()
       .padStart(2, "0")}`;
   };
-
   return (
     <div className="border-b-2 border-solid pb-12 px-4 pt-2">
       <div className="grid grid-cols-4 items-center">
         <div className="flex gap-5 items-center">
           <div
-            className={`${airlineBgColor} h-10 w-10 rounded flex items-center justify-center`}
+            className={`${flight.airlineBgColor} h-10 w-10 rounded flex items-center justify-center`}
           >
-            <img src={airlineIcon} alt="airline icon" />
+            <img src={flight.airlineIcon} alt="airline icon" />
           </div>
           <div className="flex flex-col items-start">
             <h4 className="text-base font-medium text-neutral-700">
-              {airlineName}
+              {flight.airlineName}
             </h4>
             <div className="flex items-center gap-1">
               <img src={bagIcon} />
               <small className="text-neutral-900 font-normal text-sm">
-                {bagCapacity}kg
+                {flight.baggage.checkedWeightLimitKg}kg
               </small>
             </div>
           </div>
@@ -67,8 +60,8 @@ const FlightComponent = ({
         <div className="flex flex-col justify-center">
           <div className="flex items-center">
             <span className="text-neutral-900 font-semibold text-xl">
-              {parseTime(itineraryDepartureTime)} -{" "}
-              {parseTime(itineraryArrivalTime)}
+              {parseTime(flight.itineraryDepartureTime)} -{" "}
+              {parseTime(flight.itineraryArrivalTime)}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-2">
@@ -78,7 +71,10 @@ const FlightComponent = ({
               alt="Duration icon"
             />
             <span className="text-neutral-700 font-normal text-base">
-              {calculateDuration(itineraryDepartureTime, itineraryArrivalTime)}
+              {calculateDuration(
+                flight.itineraryDepartureTime,
+                flight.itineraryArrivalTime
+              )}
             </span>
           </div>
         </div>
@@ -95,11 +91,11 @@ const FlightComponent = ({
             src={flightDepartureIcon}
             alt="Departure plane icon"
           />
-          {stopsNumber > 0 ? (
+          {flight.stopsNumber > 0 ? (
             <span className="text-base text-neutral-700">
-              {stopsNumber === 1
-                ? `${stopsNumber}` + " Stop"
-                : `${stopsNumber}` + " Stops"}
+              {flight.stopsNumber === 1
+                ? `${flight.stopsNumber}` + " Stop"
+                : `${flight.stopsNumber}` + " Stops"}
             </span>
           ) : (
             <span className="text-base text-neutral-700">Direct</span>
@@ -109,7 +105,7 @@ const FlightComponent = ({
         {/*Fligh Price */}
         <div className="flex flex-col gap-4 mt-4">
           <span className="text-xl font-semibold self-end text-[#FF912BFF] flex items-center gap-2">
-            {flightPrice} USD{" "}
+            {flight.flightPrice} USD{" "}
             <small className="text-neutral-500 text-base font-normal">
               / pax
             </small>

@@ -120,8 +120,8 @@ const FlightDetails = ({ flightDetails }) => {
                     Baggage
                     <div className="w-1.5 h-1.5 bg-[#11D396FF] rounded-full"></div>
                     <span className="text-neutral-600 text-base">
-                      {flightDetails.checkedBags} x {flightDetails.bagCapacity}{" "}
-                      kg
+                      {flightDetails.baggage.freeCheckedBags} x{" "}
+                      {flightDetails.baggage.checkedWeightLimitKg} kg
                     </span>
                   </span>
                 </div>
@@ -130,8 +130,8 @@ const FlightDetails = ({ flightDetails }) => {
                   Cabin Baggage
                   <div className="w-1.5 h-1.5 bg-[#11D396FF] rounded-full"></div>
                   <span className="text-neutral-600 text-base">
-                    {flightDetails.freeCabinBags} x{" "}
-                    {flightDetails.cabinWeightLimitKg}
+                    {flightDetails.baggage.freeCabinBags} x{" "}
+                    {flightDetails.baggage.cabinWeightLimitKg}
                     {" kg"}
                   </span>
                 </span>

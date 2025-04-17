@@ -69,7 +69,7 @@ const Planner = ({
               return (
                 <div key={index}>
                   <FlightComponent
-                    {...flight}
+                    flight={flight}
                     index={index}
                     handleModalOpen={handleModalOpen}
                     onSelect={handleFlightSelect}
