@@ -10,12 +10,6 @@ import {
   HeartIcon,
 } from "../../../utils/iconUtils/iconUtils";
 
-const priceDetails = {
-  tax: true,
-  totalPrice: 150.0,
-  discount: 1.5,
-  adultFee: 150.0,
-};
 const modalOptions = [
   {
     icon: <FlightDetailsOptionIcon />,
@@ -28,6 +22,7 @@ const modalOptions = [
 ];
 
 const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
+  console.log(flightDetails);
   const createFlightDetails = (itinerary, flightInfo) => {
     const { flights, ...rest } = itinerary;
     const { ...flight } = flightInfo;
@@ -145,22 +140,20 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
         {/*Flight benefits*/}
         {option === 1 && (
           <div className="p-4 bg-[#F8F9FAFF]">
-            <FlightBenefits
-              flightDetails={flightDetails}
-              priceDetails={priceDetails}
-            />
+            <FlightBenefits flightDetails={flightDetails} />
           </div>
         )}
 
         {/* Price and book button*/}
         <div className="flex justify-between items-center p-4 mt-auto">
           <h2 className="flex items-center gap-1 font-semibold text-2xl text-[#FF912BFF]">
-            ${flightDetails.flightPrice}
+            ${flightDetails.calculatedPrice}
             <span className="text-neutral-400 text-lg font-normal">/ pax</span>
           </h2>
           <div className="flex items-center gap-4">
             <Link
               to="/booking"
+              state={{ flightDetails }}
               className="text-white
              w-32 h-11 bg-[#11D396FF]
              rounded-[28px] text-lg

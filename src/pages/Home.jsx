@@ -493,34 +493,27 @@ const Home = () => {
             ) : (
               <div className="grid grid-cols-2 gap-8">
                 {flightResults &&
-                  flightResults.map((item, index) => (
-                    <Card
-                      key={index}
-                      cardImg={formatCardImgUrl(item.destinationImageUrl)}
-                      timeIcon={sunriseIcon}
-                      flightDate={formatFlightDate(
-                        item.departureDate,
-                        item.arrivalDate
-                      )}
-                      flightHours={formatFlightDuration(
-                        item.departureTime,
-                        item.arrivalTime
-                      )}
-                      cityName={item.destination}
-                      price={item.basePrice}
-                    />
-                  ))}
+                  flightResults
+                    .filter((_, i) => i < 2)
+                    .map((item, index) => (
+                      <Card
+                        key={index}
+                        cardImg={formatCardImgUrl(item.destinationImageUrl)}
+                        timeIcon={sunriseIcon}
+                        flightDate={formatFlightDate(
+                          item.departureDate,
+                          item.arrivalDate
+                        )}
+                        flightHours={formatFlightDuration(
+                          item.departureTime,
+                          item.arrivalTime
+                        )}
+                        cityName={item.destination}
+                        price={item.basePrice}
+                      />
+                    ))}
               </div>
             )}
-            {/*
-            <div className="w-full rounded-md mb-9">
-              <img
-                className="object-fill block w-full rounded-md"
-                src={americanMap}
-                alt="American map"
-              />
-            </div>
-            */}
           </div>
         </section>
       )}

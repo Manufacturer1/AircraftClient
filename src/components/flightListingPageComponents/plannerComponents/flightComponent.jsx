@@ -2,13 +2,7 @@ import bagIcon from "../../../images/bagIcon.svg";
 import flightDepartureIcon from "../../../images/flightDeparture.svg";
 import timeLapseIcon from "../../../images/timeLapseIcon.svg";
 
-const FlightComponent = ({
-  flight,
-  stopsNumber = 0,
-  handleModalOpen,
-  onSelect,
-  index,
-}) => {
+const FlightComponent = ({ flight, handleModalOpen, onSelect, index }) => {
   const handleChooseClick = () => {
     handleModalOpen();
     onSelect(index);
@@ -105,7 +99,7 @@ const FlightComponent = ({
         {/*Fligh Price */}
         <div className="flex flex-col gap-4 mt-4">
           <span className="text-xl font-semibold self-end text-[#FF912BFF] flex items-center gap-2">
-            {flight.flightPrice} USD{" "}
+            {flight.calculatedPrice} USD{" "}
             <small className="text-neutral-500 text-base font-normal">
               / pax
             </small>

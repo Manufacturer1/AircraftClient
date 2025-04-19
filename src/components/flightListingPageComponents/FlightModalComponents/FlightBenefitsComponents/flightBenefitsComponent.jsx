@@ -1,8 +1,12 @@
 import BenefitContainer from "./benefitContainer";
 import PriceDetails from "./priceDetailsComponent";
 import BaggagePriceContainer from "./baggagePriceContainer";
+import { getAllDiscounts } from "../../../../services/discountService";
+import { useEffect, useState } from "react";
+import { calculateDiscountFromPercentage } from "../../../../utils/flightUtils/flightUtils";
 
-const FlightBenefits = ({ flightDetails, priceDetails }) => {
+const FlightBenefits = ({ flightDetails }) => {
+  const [discounts, setDiscounts] = useState([]);
   const createFlightDetails = (itinerary, flightInfo) => {
     const { flights, ...rest } = itinerary;
     const { ...flight } = flightInfo;
@@ -10,6 +14,31 @@ const FlightBenefits = ({ flightDetails, priceDetails }) => {
       ...rest,
       ...flight,
     };
+  };
+  useEffect(() => {
+    const fetchDiscounts = async () => {
+      try {
+        const discountsData = await getAllDiscounts();
+        setDiscounts(discountsData);
+      } catch (err) {
+        console.error("Failed to fetch discounts:", err.message);
+      }
+    };
+
+    fetchDiscounts();
+  }, []);
+
+  const priceDetails = {
+    tax: true,
+    totalPrice: flightDetails.flightPrice,
+    discounts: discounts.map((discount) => ({
+      discountName: discount.name,
+      discountAmount: calculateDiscountFromPercentage(
+        flightDetails.flightPrice,
+        discount.percentage
+      ),
+    })),
+    adultFee: flightDetails.flightPrice,
   };
   return (
     <div className="flex flex-col gap-3">
@@ -34,7 +63,9 @@ const FlightBenefits = ({ flightDetails, priceDetails }) => {
       <div>
         <PriceDetails priceDetails={priceDetails} />
       </div>
-      <h3 className="text-neutral-900 font-semibold text-lg">Baggage price</h3>
+      <h3 className="text-neutral-900 font-semibold text-lg">
+        Baggage Details
+      </h3>
 
       <div
         className={`${

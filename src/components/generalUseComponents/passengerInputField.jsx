@@ -4,6 +4,9 @@ const PassengerInput = ({
   label,
   leftIcon = null,
   rightIcon = null,
+  value,
+  name,
+  onChange,
 }) => {
   return (
     <div className="flex flex-col gap-1 w-full">
@@ -22,6 +25,9 @@ const PassengerInput = ({
                       ${leftIcon ? "pl-10" : ""} ${rightIcon ? "pr-10" : ""}`}
           type={inputType}
           placeholder={placeholder}
+          value={value}
+          name={name}
+          onChange={onChange}
         />
 
         {rightIcon && (

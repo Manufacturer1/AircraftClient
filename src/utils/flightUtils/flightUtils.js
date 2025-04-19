@@ -113,3 +113,8 @@ export const fetchAndMapById = async (ids, fetchFunc) => {
 export const formatAmenityIcon = (icon) =>{
   return `${import.meta.env.VITE_RESOURCE_PATH_URL}/${icon}`;
 };
+
+export const calculateDiscountFromPercentage = (price, percentage) => {
+  if (!price || !percentage) return 0;
+  return (price * percentage) / 100;
+};

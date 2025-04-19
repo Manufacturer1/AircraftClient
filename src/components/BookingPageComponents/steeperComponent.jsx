@@ -18,7 +18,7 @@ const CustomStepper = ({ currentStep }) => {
 
           {/* Step Circle */}
           <div
-            className={`w-4 h-4 z-10 rounded-full flex items-center justify-center border-2 ${
+            className={`w-4 h-4 z-10 rounded-full flex items-center justify-center border-2  ${
               index <= currentStep
                 ? "bg-[#11D396FF] border-[#11D396FF]"
                 : "bg-gray-300 border-gray-300"

@@ -1,57 +1,44 @@
-import { use, useState } from "react";
+import { useRef, useEffect, useState } from "react";
 import CustomStepper from "../components/BookingPageComponents/steeperComponent";
 import BookingPriceDetails from "../components/BookingPageComponents/bookingPriceDetailsComponent";
-import windPowerIcon from "../images/windPowerIcon.svg";
-import cactusIcon from "../images/cactus.svg";
-import forestIcon from "../images/forest.svg";
-import cloudIcon from "../images/soundCloud.svg";
 import BookingFlightContainer from "../components/BookingPageComponents/BookingDetailsComponents/bookingFlightContainer";
 import PurchaseStep from "./purchaseStep";
 import BookingStep from "./bookingStep";
 import TicketStep from "./ticketGenerationStep";
-import { Link } from "react-router-dom";
-
-const priceDetails = {
-  tax: true,
-  totalPrice: 150.0,
-  discount: 1.5,
-  adultFee: 150.0,
-};
-
-const bookingFlightDetails = [
-  {
-    airlineIcon: cloudIcon,
-    airlineBgColor: "bg-[#0D78C9FF]",
-    airlineName: "Cloudy Airlines",
-    classType: "Economy",
-    departureCity: "HOU",
-    arrivalCity: "LAS",
-    flightDepartureTime: "01:19 PM",
-    flightArrivalTime: "02:00 PM",
-    flightDepartureDate: "09/02/2023",
-    isRefundable: true,
-    isRescheduleAvailabe: true,
-  },
-  {
-    airlineIcon: cloudIcon,
-    airlineBgColor: "bg-[#0D78C9FF]",
-    airlineName: "Cloudy Airlines",
-    classType: "Economy",
-    departureCity: "LAS",
-    arrivalCity: "LAX",
-    flightDepartureTime: "02:00 PM",
-    flightArrivalTime: "02:45 PM",
-    flightDepartureDate: "10/02/2023",
-    isRefundable: true,
-    isRescheduleAvailabe: true,
-  },
-];
+import { Link, useLocation } from "react-router-dom";
+import NotFound from "../components/generalUseComponents/notFound";
+import { getAllDiscounts } from "../services/discountService";
+import { calculateDiscountFromPercentage } from "../utils/flightUtils/flightUtils";
 
 const BookingPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [nationality, setNationality] = useState("");
   const [country, setCountry] = useState("");
+  const [discounts, setDiscounts] = useState([]);
+  const stepperRef = useRef(null);
+  const location = useLocation();
+  const { flightDetails } = location.state || {};
+  const [passengerData, setPassengerData] = useState(null);
 
+  //Discount fetching
+  useEffect(() => {
+    const fetchDiscounts = async () => {
+      try {
+        const discountsData = await getAllDiscounts();
+        setDiscounts(discountsData);
+      } catch (err) {
+        console.error("Failed to fetch discounts:", err.message);
+      }
+    };
+
+    fetchDiscounts();
+  }, []);
+  // Scrolling effect
+  useEffect(() => {
+    if (stepperRef.current) {
+      stepperRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
   const handleNextStep = () => {
     setActiveStep((prev) => {
       if (prev < 2) {
@@ -60,6 +47,15 @@ const BookingPage = () => {
         return prev;
       }
     });
+
+    setTimeout(() => {
+      if (stepperRef.current) {
+        stepperRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 0);
   };
 
   const handleBackStep = () => {
@@ -70,10 +66,39 @@ const BookingPage = () => {
         return prev;
       }
     });
+
+    setTimeout(() => {
+      if (stepperRef.current) {
+        stepperRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 0);
+  };
+
+  if (!flightDetails) {
+    return (
+      <NotFound
+        errorMessage={"No flight selected. Please go back and choose a flight"}
+      />
+    );
+  }
+  const priceDetails = {
+    tax: true,
+    totalPrice: flightDetails.flightPrice,
+    discounts: discounts.map((discount) => ({
+      discountName: discount.name,
+      discountAmount: calculateDiscountFromPercentage(
+        flightDetails.flightPrice,
+        discount.percentage
+      ),
+    })),
+    adultFee: flightDetails.flightPrice,
   };
 
   return (
-    <section className="px-20 py-5 mb-10">
+    <section ref={stepperRef} className="px-20 py-5 mb-10">
       <h2 className="text-neutral-900 text-3xl font-bold mb-2">My booking</h2>
       <section className="flex gap-24">
         <div className="basis-[70%] mt-14 ">
@@ -134,11 +159,7 @@ const BookingPage = () => {
         </div>
         <div className="basis-[30%] flex flex-col gap-5">
           <BookingPriceDetails priceDetails={priceDetails} />
-          <BookingFlightContainer
-            bookingFlightDetails={bookingFlightDetails}
-            departureCity={"Houston"}
-            arrivalCity={"Los Angeles"}
-          />
+          <BookingFlightContainer bookingFlightDetails={flightDetails} />
         </div>
       </section>
     </section>

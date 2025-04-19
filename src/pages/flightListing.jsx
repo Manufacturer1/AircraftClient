@@ -226,7 +226,10 @@ const FlightList = () => {
           airlineName: airline.name || "Unknown Airline",
           itineraryDepartureTime: itinerary.itinerary.departureTime,
           itineraryArrivalTime: itinerary.itinerary.arrivalTime || "",
+          itineraryOrigin: itinerary.itinerary.origin,
+          itineraryDestination: itinerary.itinerary.destination,
           flightPrice: itinerary.itinerary.totalPrice || 0,
+          calculatedPrice: itinerary.itinerary.calculatedPrice || 0,
           stopsNumber: itinerary.flights.length - 1,
           baggage,
           departureDate: itinerary.itinerary.departureDate,
@@ -276,7 +279,9 @@ const FlightList = () => {
 
         if (matchingFlights.length > 0) {
           const minPrice = Math.min(
-            ...matchingFlights.map((f) => parseFloat(f.itinerary.totalPrice))
+            ...matchingFlights.map((f) =>
+              parseFloat(f.itinerary.calculatedPrice)
+            )
           );
           return {
             ...dateItem,
@@ -504,13 +509,7 @@ const FlightList = () => {
 
   const handleTransitFilter = async (selectedTransit) => {
     setTransitFilter(selectedTransit);
-    // if (selectedTransit === "") {
-    //   setFlightsWithoutDate(await searchFlightsWithoutDate(formData));
-    //   setDateOnPlanner(unfilteredFlights);
-    //   setItineraries(unfilteredFlights);
-    //   handleDateSelectFromPlanner(schedule[selectedIndex].date);
-    //   return;
-    // }
+
     const apiFormattedData = {
       ...formData,
       departureDate: convertToApiFormat(formData.departureDate),

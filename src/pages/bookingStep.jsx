@@ -3,8 +3,29 @@ import GlobeIcon from "../components/generalUseComponents/globeIconComponent";
 import PassengerSelect from "../components/generalUseComponents/passengerSelectComponent";
 import PassportAlert from "../components/BookingPageComponents/BookingStepComponents/passportAlertComponent";
 import contactIcon from "../images/contact.svg";
+import { useState } from "react";
 
 const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    surname: "",
+    birthday: "",
+    passportNumber: "",
+    passportExpiryDate: "",
+    contactName: "",
+    contactSurname: "",
+    email: "",
+    phoneNumber: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
   return (
     <section>
       <div className="flex items-center gap-2">
@@ -49,11 +70,17 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
             inputType={"text"}
             label={"Name"}
             placeholder={"Input text"}
+            name={"name"}
+            value={formData.name}
+            onChange={handleChange}
           />
           <PassengerInput
             label={"Surname"}
             inputType={"text"}
             placeholder={"Input text"}
+            name={"surname"}
+            value={formData.surname}
+            onChange={handleChange}
           />
         </div>
         <div className="grid grid-cols-2 gap-5">
@@ -61,6 +88,9 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
             inputType={"date"}
             placeholder={"Input text"}
             label={"Birthday"}
+            name={"birthday"}
+            value={formData.birthday}
+            onChange={handleChange}
           />
           <PassengerSelect
             options={[
@@ -68,8 +98,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               { value: "ca", label: "Canada" },
               { value: "uk", label: "United Kingdom" },
             ]}
-            placeholder={"Select"}
-            label={"Nationality"}
+            placeholder="Select"
+            label="Nationality"
             leftIcon={<GlobeIcon />}
             value={nationality}
             onChange={(e) => setNationality(e.target.value)}
@@ -84,9 +114,12 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
       <div className="flex flex-col gap-4">
         <div>
           <PassengerInput
-            inputType={"text"}
-            label={"Passport number"}
-            placeholder={"Input Text"}
+            inputType="text"
+            label="Passport number"
+            placeholder="Input Text"
+            name={"passportNumber"}
+            value={formData.passportNumber}
+            onChange={handleChange}
           />
         </div>
         <div className="grid grid-cols-2 gap-5 mb-10">
@@ -119,11 +152,17 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               inputType={"text"}
               placeholder={"Input text"}
               label={"Name"}
+              name={"contactName"}
+              value={formData.contactName}
+              onChange={handleChange}
             />
             <PassengerInput
               inputType={"text"}
               label={"Surname"}
               placeholder={"Input text"}
+              name={"contactSurname"}
+              value={formData.contactSurname}
+              onChange={handleChange}
             />
           </div>
           <div className="grid grid-cols-2 gap-5">
@@ -131,11 +170,17 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               inputType={"email"}
               label={"Email"}
               placeholder={"Input Email"}
+              name={"email"}
+              value={formData.email}
+              onChange={handleChange}
             />
             <PassengerInput
               inputType={"number"}
               label={"Phone number"}
               placeholder={"Input phone number"}
+              name={"phoneNumber"}
+              value={formData.phoneNumber}
+              onChange={handleChange}
             />
           </div>
         </div>

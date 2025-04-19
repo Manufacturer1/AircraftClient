@@ -2,30 +2,34 @@ import AirlineIcon from "../../generalUseComponents/airlineIconComponent";
 import flightArrivalIcon from "../../../images/flightArrival.svg";
 import DateContainer from "./dateContainerComponent";
 import dollarIcon from "../../../images/dollar.svg";
+import { tripTypeToLabel } from "../../../utils/flightUtils/flightUtils";
 
 const BookingFlightDetails = ({ bookingFlightDetails }) => {
-  const parseTime = (time) => {
-    const [timePart, period] = time.split(" ");
-    const [hours, minutes] = timePart.split(":").map(Number);
+  const parseTime = (timeString) => {
+    if (!timeString) return 0;
 
-    if (period === "PM" && hours !== 12) {
-      return (hours + 12) * 60 + minutes;
-    }
-    if (period === "AM" && hours === 12) {
-      return minutes;
-    }
+    const [hours, minutes] = timeString.split(":").map(Number);
     return hours * 60 + minutes;
   };
+
   const calculateDuration = (departure, arrival) => {
     const depMinutes = parseTime(departure);
     const arrMinutes = parseTime(arrival);
 
+    if (isNaN(depMinutes) || isNaN(arrMinutes)) return "N/A";
+
     let diff = arrMinutes - depMinutes;
+
     if (diff < 0) diff += 24 * 60;
 
     const hours = Math.floor(diff / 60);
     const minutes = diff % 60;
-    return `${hours}h ${minutes}m`;
+
+    return `${hours}h ${minutes.toString().padStart(2, "0")}m`;
+  };
+  const formatDisplayTime = (timeString) => {
+    if (!timeString) return "--:--";
+    return timeString.split(":").slice(0, 2).join(":");
   };
 
   return (
@@ -39,8 +43,7 @@ const BookingFlightDetails = ({ bookingFlightDetails }) => {
             airlineName={bookingFlightDetails.airlineName}
           />
           <span className="text-neutral-500 text-base mb-2">
-            {bookingFlightDetails.departureCity} -{" "}
-            {bookingFlightDetails.arrivalCity}
+            {bookingFlightDetails.origin} - {bookingFlightDetails.destination}
           </span>
           <div className="flex items-center gap-2 mb-4">
             <img src={flightArrivalIcon} />
@@ -50,8 +53,8 @@ const BookingFlightDetails = ({ bookingFlightDetails }) => {
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-neutral-900 font-semibold">
-              {bookingFlightDetails.flightDepartureTime} -{" "}
-              {bookingFlightDetails.flightArrivalTime}
+              {formatDisplayTime(bookingFlightDetails.departureTime)} -{" "}
+              {formatDisplayTime(bookingFlightDetails.arrivalTime)}
             </span>
             <div className="flex gap-1 items-center">
               <svg
@@ -66,17 +69,15 @@ const BookingFlightDetails = ({ bookingFlightDetails }) => {
               </svg>
               <span className="text-[#2424FFFF]">
                 {calculateDuration(
-                  bookingFlightDetails.flightDepartureTime,
-                  bookingFlightDetails.flightArrivalTime
+                  bookingFlightDetails.departureTime,
+                  bookingFlightDetails.arrivalTime
                 )}
               </span>
             </div>
           </div>
         </div>
         <div className="flex flex-col items-end justify-between gap-3">
-          <DateContainer
-            flightDate={bookingFlightDetails.flightDepartureDate}
-          />
+          <DateContainer flightDate={bookingFlightDetails.departureDate} />
           <div className="space-y-3">
             <div className="relative w-16 h-[1px] mr-2 bg-neutral-400">
               <div className="absolute bottom-[3px] top-[-3px] left-[-3px] w-2 h-2 bg-[#11D396FF] rounded-full"></div>
@@ -99,31 +100,48 @@ const BookingFlightDetails = ({ bookingFlightDetails }) => {
         </div>
       </div>
       <hr className="border-solid border-neutral-300 mb-3" />
-      <div className="flex flex-col gap-2">
-        {bookingFlightDetails.isRefundable && (
-          <div className="flex items-center gap-2">
-            <img src={dollarIcon} />
-            <span className="text-[#0EA776FF] font-medium">Refundable</span>
-          </div>
-        )}
-        {bookingFlightDetails.isRescheduleAvailabe && (
-          <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <div className="text-[#0EA776FF] w-6 h-6">
+          {bookingFlightDetails.tripType === "OneWay" ? (
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <title />
+              <g data-name="Layer 2" id="Layer_2">
+                <path
+                  d="M22,9a1,1,0,0,0,0,1.42l4.6,4.6H3.06a1,1,0,1,0,0,2H26.58L22,21.59A1,1,0,0,0,22,23a1,1,0,0,0,1.41,0l6.36-6.36a.88.88,0,0,0,0-1.27L23.42,9A1,1,0,0,0,22,9Z"
+                  fill="#11D396FF"
+                />
+              </g>
+            </svg>
+          ) : (
             <svg
-              viewBox="0 0 448 512"
+              className="w-6 h-6"
+              fill="#686583"
               xmlns="http://www.w3.org/2000/svg"
-              width="16px"
-              height="16px"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
             >
               <path
+                d="M9.01 14H2v2h7.01v3L13 15l-3.99-4v3zm5.98-1v-3H22V8h-7.01V5L11 9l3.99 4z"
                 fill="#11D396FF"
-                d="M152 64H296V24C296 10.75 306.7 0 320 0C333.3 0 344 10.75 344 24V64H384C419.3 64 448 92.65 448 128V448C448 483.3 419.3 512 384 512H64C28.65 512 0 483.3 0 448V128C0 92.65 28.65 64 64 64H104V24C104 10.75 114.7 0 128 0C141.3 0 152 10.75 152 24V64zM48 448C48 456.8 55.16 464 64 464H384C392.8 464 400 456.8 400 448V192H48V448z"
               />
             </svg>
-            <span className="text-[#0EA776FF] font-medium">
-              Reschedule Available
-            </span>
-          </div>
-        )}
+          )}
+        </div>
+
+        <span className="text-[#0EA776FF] text-base font-medium">
+          {tripTypeToLabel[bookingFlightDetails.tripType]}
+        </span>
+      </div>
+      <div className="flex items-center">
+        <img
+          className="w-5 h-5"
+          src={dollarIcon}
+          alt="dollar icon for refundable"
+        />
+        <span className="text-[#0EA776FF] text-base font-medium">
+          {bookingFlightDetails.finalPrice} / pax
+        </span>
       </div>
     </div>
   );

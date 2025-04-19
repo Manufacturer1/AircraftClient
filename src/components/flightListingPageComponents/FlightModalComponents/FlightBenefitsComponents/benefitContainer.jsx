@@ -36,7 +36,7 @@ const BenefitContainer = ({ benefit }) => {
             alt="dollar icon for refundable"
           />
           <span className="text-[#0EA776FF] text-base font-medium">
-            {benefit.basePrice}
+            {benefit.finalPrice} / pax
           </span>
         </div>
         <div className="flex items-center gap-3">
