@@ -4,25 +4,44 @@ import PassengerSelect from "../components/generalUseComponents/passengerSelectC
 import PassportAlert from "../components/BookingPageComponents/BookingStepComponents/passportAlertComponent";
 import contactIcon from "../images/contact.svg";
 import { useState } from "react";
+import { nationalities, countries } from "../utils/bookingUtils/bookingUtils";
+import { validateField } from "../utils/validationUtils/validationUtils";
 
-const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    surname: "",
-    birthday: "",
-    passportNumber: "",
-    passportExpiryDate: "",
-    contactName: "",
-    contactSurname: "",
-    email: "",
-    phoneNumber: "",
-  });
-
+const BookingStep = ({ formData, setFormData, errors, setErrors }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+
+    const fieldErrors = validateField(name, value);
+    setErrors((prev) => ({
+      ...prev,
+      ...fieldErrors,
+    }));
+  };
+  const handleSelectChange = (e) => {
+    const { name, value, label } = e.target;
+    console.log(label);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    const fieldErrors = validateField(name, label);
+    setErrors((prev) => ({
+      ...prev,
+      ...fieldErrors,
+    }));
+  };
+  const handleBlur = (e) => {
+    const { name } = e.target;
+
+    const fieldErrors = validateField(name, formData[name]);
+    setErrors((prev) => ({
+      ...prev,
+      ...fieldErrors,
     }));
   };
 
@@ -73,6 +92,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
             name={"name"}
             value={formData.name}
             onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.name}
           />
           <PassengerInput
             label={"Surname"}
@@ -81,6 +102,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
             name={"surname"}
             value={formData.surname}
             onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.surname}
           />
         </div>
         <div className="grid grid-cols-2 gap-5">
@@ -91,18 +114,18 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
             name={"birthday"}
             value={formData.birthday}
             onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.birthday}
           />
           <PassengerSelect
-            options={[
-              { value: "us", label: "United States" },
-              { value: "ca", label: "Canada" },
-              { value: "uk", label: "United Kingdom" },
-            ]}
+            options={nationalities}
             placeholder="Select"
             label="Nationality"
+            name={"nationality"}
+            value={formData.nationality}
             leftIcon={<GlobeIcon />}
-            value={nationality}
-            onChange={(e) => setNationality(e.target.value)}
+            onChange={handleSelectChange}
+            error={errors.nationality}
           />
         </div>
       </div>
@@ -120,23 +143,29 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
             name={"passportNumber"}
             value={formData.passportNumber}
             onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.passportNumber}
           />
         </div>
         <div className="grid grid-cols-2 gap-5 mb-10">
           <PassengerSelect
-            options={[
-              { value: "us", label: "United States" },
-              { value: "ca", label: "Canada" },
-            ]}
+            options={countries}
             placeholder={"Select Country"}
             label={"Country of Issue"}
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
+            name={"country"}
+            value={formData.country}
+            onChange={handleSelectChange}
+            error={errors.country}
           />
           <PassengerInput
             inputType={"date"}
             label={"Passport Expiry Date"}
             placeholder={"Select"}
+            name={"passportExpiryDate"}
+            value={formData.passportExpiryDate}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.passportExpiryDate}
           />
         </div>
         {/*Contact details*/}
@@ -155,6 +184,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               name={"contactName"}
               value={formData.contactName}
               onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.contactName}
             />
             <PassengerInput
               inputType={"text"}
@@ -163,6 +194,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               name={"contactSurname"}
               value={formData.contactSurname}
               onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.contactSurname}
             />
           </div>
           <div className="grid grid-cols-2 gap-5">
@@ -173,6 +206,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               name={"email"}
               value={formData.email}
               onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.email}
             />
             <PassengerInput
               inputType={"number"}
@@ -181,6 +216,8 @@ const BookingStep = ({ nationality, setNationality, country, setCountry }) => {
               name={"phoneNumber"}
               value={formData.phoneNumber}
               onChange={handleChange}
+              onBlur={handleBlur}
+              error={errors.phoneNumber}
             />
           </div>
         </div>

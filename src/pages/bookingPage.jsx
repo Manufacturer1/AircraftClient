@@ -9,16 +9,38 @@ import { Link, useLocation } from "react-router-dom";
 import NotFound from "../components/generalUseComponents/notFound";
 import { getAllDiscounts } from "../services/discountService";
 import { calculateDiscountFromPercentage } from "../utils/flightUtils/flightUtils";
+import { validateForm } from "../utils/validationUtils/validationUtils";
 
 const BookingPage = () => {
-  const [activeStep, setActiveStep] = useState(0);
-  const [nationality, setNationality] = useState("");
-  const [country, setCountry] = useState("");
+  const [activeStep, setActiveStep] = useState(1);
   const [discounts, setDiscounts] = useState([]);
   const stepperRef = useRef(null);
   const location = useLocation();
   const { flightDetails } = location.state || {};
-  const [passengerData, setPassengerData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [passengerErrors, setPassengerErrors] = useState({});
+  const [paymentErrors, setPaymentErrors] = useState({});
+
+  const [paymentData, setPaymentData] = useState({
+    cardName: "",
+    cardNumber: "",
+    expirationDate: "",
+    cardCvv: "",
+  });
+
+  const [passengerData, setPassengerData] = useState({
+    name: "",
+    surname: "",
+    birthday: "",
+    passportNumber: "",
+    passportExpiryDate: "",
+    contactName: "",
+    contactSurname: "",
+    email: "",
+    phoneNumber: "",
+    nationality: "",
+    country: "",
+  });
 
   //Discount fetching
   useEffect(() => {
@@ -39,23 +61,52 @@ const BookingPage = () => {
       stepperRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, []);
+  const handleBookingStepSubmit = () => {
+    const data = validateForm(passengerData);
+
+    if (!data.isValid) {
+      setPassengerErrors(data.errors);
+      return false;
+    }
+
+    return true;
+  };
+  const handlePaymentStepSubmit = () => {
+    const data = validateForm(paymentData);
+
+    if (!data.isValid) {
+      setPaymentErrors(data.errors);
+      return false;
+    }
+    return true;
+  };
   const handleNextStep = () => {
-    setActiveStep((prev) => {
-      if (prev < 2) {
-        return prev + 1;
-      } else {
-        return prev;
-      }
-    });
+    if (loading || activeStep >= 2) return;
+
+    setLoading(true);
 
     setTimeout(() => {
-      if (stepperRef.current) {
-        stepperRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+      let isStepValid = false;
+
+      if (activeStep === 0) {
+        isStepValid = handleBookingStepSubmit();
+      } else if (activeStep === 1) {
+        isStepValid = handlePaymentStepSubmit();
       }
-    }, 0);
+
+      if (isStepValid) {
+        setActiveStep((prev) => prev + 1);
+
+        setTimeout(() => {
+          stepperRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 0);
+      }
+
+      setLoading(false);
+    }, 1000);
   };
 
   const handleBackStep = () => {
@@ -109,14 +160,21 @@ const BookingPage = () => {
           {/*Booking Step*/}
           {activeStep === 0 && (
             <BookingStep
-              nationality={nationality}
-              setNationality={setNationality}
-              country={country}
-              setCountry={setCountry}
+              formData={passengerData}
+              setFormData={setPassengerData}
+              errors={passengerErrors}
+              setErrors={setPassengerErrors}
             />
           )}
           {/*Purchase step*/}
-          {activeStep === 1 && <PurchaseStep />}
+          {activeStep === 1 && (
+            <PurchaseStep
+              formData={paymentData}
+              setFormData={setPaymentData}
+              errors={paymentErrors}
+              setErrors={setPaymentErrors}
+            />
+          )}
           {/*Ticket generation step*/}
           {activeStep === 2 && <TicketStep />}
 
@@ -136,13 +194,44 @@ const BookingPage = () => {
               )}
               <button
                 onClick={handleNextStep}
+                disabled={loading}
                 className={`${activeStep === 0 ? "ml-auto" : ""}
-             h-11 text-lg text-white rounded-[4px]
-             bg-[#11D396FF] px-7
-             hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF]
-             transition-all duration 200`}
+                  h-11 text-lg text-white rounded-[4px]
+                  px-7 transition-all duration-200
+                  ${
+                    loading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#11D396FF] hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF]"
+                  }
+                `}
               >
-                Next
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"
+                      ></path>
+                    </svg>
+                    Loading...
+                  </div>
+                ) : (
+                  "Next"
+                )}
               </button>
             </div>
           ) : (

@@ -4,10 +4,54 @@ import masterCardIcon from "../images/masterCard.svg";
 import amexCardIcon from "../images/amexCard.svg";
 import PassengerInput from "../components/generalUseComponents/passengerInputField";
 import InfoIcon from "../components/generalUseComponents/infoIconComponent";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import { validateField } from "../utils/validationUtils/validationUtils";
 
-const PurchaseStep = () => {
+const PurchaseStep = ({ formData, setFormData, errors, setErrors }) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    let updatedValue = value;
+    if (name === "cardNumber") {
+      const digitsOnly = value.replace(/\D/g, "");
+      const limitedDigits = digitsOnly.slice(0, 16);
+      updatedValue = limitedDigits.replace(/(\d{4})(?=\d)/g, "$1 ").trim();
+    } else if (name === "expirationDate") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 4);
+      if (digitsOnly.length >= 3) {
+        updatedValue = `${digitsOnly.slice(0, 2)}/${digitsOnly.slice(2)}`;
+      } else {
+        updatedValue = digitsOnly;
+      }
+    } else if (name === "cardCvv") {
+      const digitsOnly = value.replace(/\D/g, "").slice(0, 3);
+      updatedValue = digitsOnly;
+    } else if (name === "cardName") {
+      const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "").slice(0, 100);
+      updatedValue = lettersOnly;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
+
+    const fieldErrors = validateField(name, value);
+    setErrors((prev) => ({
+      ...prev,
+      ...fieldErrors,
+    }));
+  };
+
+  const handleBlur = (e) => {
+    const { name } = e.target;
+
+    const fieldErrors = validateField(name, formData[name]);
+    setErrors((prev) => ({
+      ...prev,
+      ...fieldErrors,
+    }));
+  };
+
   return (
     <section>
       <div className="flex gap-2 items-center mb-7">
@@ -33,24 +77,44 @@ const PurchaseStep = () => {
             inputType={"text"}
             label={"Name on card"}
             placeholder={"Enter name on card"}
+            name={"cardName"}
+            value={formData.cardName}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.cardName}
           />
           <PassengerInput
-            inputType={"number"}
+            inputType={"text"}
             label={"Card number"}
             placeholder={"Enter card number"}
+            name={"cardNumber"}
+            value={formData.cardNumber}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.cardNumber}
           />
         </div>
         <div className="grid grid-cols-2 gap-5">
           <PassengerInput
-            inputType={"number"}
+            inputType={"text"}
             label={"Expiration date"}
             placeholder={"MM/YY"}
+            name={"expirationDate"}
+            value={formData.expirationDate}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.expirationDate}
           />
           <PassengerInput
             inputType={"number"}
             label={"CVV"}
             placeholder={"Enter CVV"}
             rightIcon={<InfoIcon />}
+            name={"cardCvv"}
+            value={formData.cardCvv}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            error={errors.cardCvv}
           />
         </div>
       </div>

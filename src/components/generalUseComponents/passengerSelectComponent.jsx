@@ -1,85 +1,92 @@
-import { Select, MenuItem, InputBase, styled } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-
-// 1. Create filtered InputBase component
-const FilteredInputBase = ({ notched, ...props }) => <InputBase {...props} />;
-
-const CustomSelect = styled(Select, {
-  shouldForwardProp: (prop) => prop !== "hasLeftIcon",
-})(({ theme, hasLeftIcon }) => ({
-  "& .MuiInputBase-input": {
-    borderRadius: "18px",
-    backgroundColor: "#F3F4F6",
-    padding: hasLeftIcon ? "9px 16px 9px 35px" : "9px 16px",
-    border: "1px solid transparent",
-    "&:hover": {
-      borderColor: theme.palette.grey[300],
-    },
-    "&:focus": {
-      backgroundColor: "#fff",
-      borderRadius: "18px",
-      borderColor: "transparent",
-      boxShadow: `0 0 0 2px ${theme.palette.grey[200]}`,
-    },
-  },
-  "& .MuiSelect-icon": {
-    color: theme.palette.grey[500],
-    right: 12,
-  },
-}));
+import React from "react";
+import Select from "react-select";
+import { components } from "react-select";
 
 const PassengerSelect = ({
   label,
   placeholder = "Select",
   options = [],
   leftIcon = null,
-  value = "",
+  value,
+  onChange,
+  error = "", // ⬅️ include error prop
   ...props
 }) => {
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  const Control = ({ children, ...rest }) => (
+    <components.Control {...rest}>
+      {leftIcon && (
+        <span className="absolute left-3 text-neutral-500">{leftIcon}</span>
+      )}
+      {children}
+    </components.Control>
+  );
+
   return (
     <div className="flex flex-col gap-1 w-full">
       <label className="text-neutral-800 font-bold">{label}</label>
-      <div className="relative flex items-center w-full">
-        {leftIcon && (
-          <span className="absolute left-[10px] text-neutral-500 z-10">
-            {leftIcon}
-          </span>
-        )}
-
-        <CustomSelect
-          hasLeftIcon={!!leftIcon}
-          displayEmpty
-          value={value}
-          input={<FilteredInputBase className="w-full" />}
-          IconComponent={ExpandMoreIcon}
-          renderValue={(selected) => {
-            if (!selected) {
-              return <span className="text-neutral-500">{placeholder}</span>;
-            }
-            return options.find((opt) => opt.value === selected)?.label;
-          }}
-          sx={{
-            width: "100%",
-            "& .MuiInputBase-root": {
-              borderRadius: "18px",
+      <Select
+        options={options}
+        placeholder={placeholder}
+        value={selectedOption}
+        onChange={(selected) => {
+          if (onChange) {
+            onChange({
+              target: {
+                value: selected?.value || "",
+                label: selected?.label || "",
+                name: props.name || "",
+              },
+            });
+          }
+        }}
+        components={{ Control }}
+        className={`react-select-container ${error ? "border-red-500" : ""}`}
+        classNamePrefix="react-select"
+        isClearable={false}
+        styles={{
+          control: (base, state) => ({
+            ...base,
+            borderRadius: "18px",
+            backgroundColor: "#F3F4F6",
+            paddingLeft: leftIcon ? "30px" : "16px",
+            minHeight: "40px",
+            border: error ? "1px solid #DC2626" : "1px solid transparent",
+            boxShadow: "none",
+            "&:hover": {
+              borderColor: error ? "#DC2626" : "#D1D5DB",
             },
-          }}
-          {...props}
-        >
-          <MenuItem disabled value="">
-            <span className="text-neutral-500">{placeholder}</span>
-          </MenuItem>
-          {options.map((option) => (
-            <MenuItem
-              key={option.value}
-              value={option.value}
-              className="text-neutral-700 hover:bg-gray-100"
-            >
-              {option.label}
-            </MenuItem>
-          ))}
-        </CustomSelect>
-      </div>
+            cursor: "pointer",
+          }),
+          placeholder: (base) => ({
+            ...base,
+            color: "#6B7280",
+          }),
+          menu: (base) => ({
+            ...base,
+            borderRadius: "8px",
+            marginTop: "4px",
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+          }),
+          option: (base, state) => ({
+            ...base,
+            backgroundColor: state.isSelected ? "#E5E7EB" : "white",
+            color: "#374151",
+            "&:hover": {
+              backgroundColor: "#F3F4F6",
+              cursor: "pointer",
+            },
+          }),
+          dropdownIndicator: (base) => ({
+            ...base,
+            color: "#6B7280",
+            padding: "0 8px",
+          }),
+        }}
+        {...props}
+      />
+      {error && <p className="text-sm text-red-600">{error}</p>}
     </div>
   );
 };
