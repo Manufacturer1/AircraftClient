@@ -228,6 +228,7 @@ const FlightList = () => {
           itineraryArrivalTime: itinerary.itinerary.arrivalTime || "",
           itineraryOrigin: itinerary.itinerary.origin,
           itineraryDestination: itinerary.itinerary.destination,
+          itineraryId: itinerary.itinerary.id,
           flightPrice: itinerary.itinerary.totalPrice || 0,
           calculatedPrice: itinerary.itinerary.calculatedPrice || 0,
           stopsNumber: itinerary.flights.length - 1,
@@ -236,6 +237,7 @@ const FlightList = () => {
           hasStops: itinerary.itinerary.hasStops || false,
           stopTime: itinerary.itinerary.stopTime || "",
           flights: enrichedFlights,
+          passengerNumber: formData.passengerCount,
         };
       });
 

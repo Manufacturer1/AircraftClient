@@ -3,18 +3,24 @@ import GlobeIcon from "../components/generalUseComponents/globeIconComponent";
 import PassengerSelect from "../components/generalUseComponents/passengerSelectComponent";
 import PassportAlert from "../components/BookingPageComponents/BookingStepComponents/passportAlertComponent";
 import contactIcon from "../images/contact.svg";
-import { useState } from "react";
 import { nationalities, countries } from "../utils/bookingUtils/bookingUtils";
 import { validateField } from "../utils/validationUtils/validationUtils";
 
 const BookingStep = ({ formData, setFormData, errors, setErrors }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    let formatedValue = value;
+    if (name === "phoneNumber") {
+      formatedValue = value.slice(0, 9);
+    }
+    if (name === "passportNumber") {
+      formatedValue = value.slice(0, 10);
+    }
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: formatedValue,
     }));
-
     const fieldErrors = validateField(name, value);
     setErrors((prev) => ({
       ...prev,

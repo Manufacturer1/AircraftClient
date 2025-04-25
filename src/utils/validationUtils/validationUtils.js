@@ -79,6 +79,7 @@ export const validateField = (name, value) => {
         if (!value.trim()) {
           errors[name] = 'Phone number is required';
         } else if (!/^0\d{8}$/.test(value)) {
+          
           errors[name] = 'Please enter a valid phone number';
         }
        
@@ -97,61 +98,6 @@ export const validateField = (name, value) => {
           errors[name] = "";
         }
         break;
-
-        case 'cardName':
-       
-          if (!value.trim()) {
-            errors[name] = 'Cardholder name is required';
-          } else if (!/^[a-zA-Z\s-']+$/.test(value)) {
-            errors[name] = 'Only letters, spaces, hyphens and apostrophes allowed';
-          } else if (value.trim().length < 2) {
-            errors[name] = 'Name is too short';
-          } else {
-            errors[name] = "";
-          }
-          break;
-
-          case 'cardNumber':
-            if (!value.trim()) {
-              errors[name] = 'Card number is required';
-            } else if (!/^[0-9\s]{13,19}$/.test(value)) {
-              errors[name] = 'Invalid card number';
-            } else {
-              // Luhn algorithm validation
-              const strippedValue = value.replace(/\s+/g, '');
-              if (!isValidLuhn(strippedValue)) {
-                errors[name] = 'Invalid card number';
-              } else {
-                errors[name] = "";
-              }
-            }
-            break;
-
-            case 'expirationDate':
-              if (!value.trim()) {
-                errors[name] = 'Expiry date is required';
-              } else if (!/^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(value)) {
-                errors[name] = 'Invalid format (MM/YY)';
-              } else {
-                const [month, year] = value.split('/');
-                const expiry = new Date(`20${year}`, month, 1);
-                const today = new Date();
-                if (expiry < today) {
-                  errors[name] = 'Card has expired';
-                } else {
-                  errors[name] = "";
-                }
-              }
-              break;
-              case 'cardCvv':
-                if (!value.trim()) {
-                  errors[name] = 'CVV is required';
-                } else if (!/^[0-9]{3,4}$/.test(value)) {
-                  errors[name] = 'CVV must be 3 or 4 digits';
-                } else {
-                  errors[name] = "";
-                }
-                break;
     }
 
     
@@ -159,26 +105,6 @@ export const validateField = (name, value) => {
     return errors;
   };
 
-  const isValidLuhn = (cardNumber) => {
-    let sum = 0;
-    let alternate = false;
-    
-    for (let i = cardNumber.length - 1; i >= 0; i--) {
-        let digit = parseInt(cardNumber.charAt(i), 10);
-        
-        if (alternate) {
-            digit *= 2;
-            if (digit > 9) {
-                digit = (digit % 10) + 1;
-            }
-        }
-        
-        sum += digit;
-        alternate = !alternate;
-    }
-    
-    return sum % 10 === 0;
-};
   
   export const validateForm = (formData) => {
     const errors = {};
