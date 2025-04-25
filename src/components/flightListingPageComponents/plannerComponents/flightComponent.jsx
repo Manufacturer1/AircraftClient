@@ -28,6 +28,7 @@ const FlightComponent = ({ flight, handleModalOpen, onSelect, index }) => {
       .toString()
       .padStart(2, "0")}`;
   };
+  console.log(flight);
   return (
     <div className="border-b-2 border-solid pb-12 px-4 pt-2">
       <div className="grid grid-cols-4 items-center">

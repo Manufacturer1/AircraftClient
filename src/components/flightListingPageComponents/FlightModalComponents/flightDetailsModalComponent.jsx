@@ -52,7 +52,7 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
     <>
       {/*Modal Overlay*/}
       {openModal && (
-        <div className="fixed top-0 left-0 w-full h-full z-10 bg-neutral-900 transition-opacity duration-300 opacity-50"></div>
+        <div className="fixed top-0 left-0 w-full h-full z-20 bg-neutral-900 transition-opacity duration-300 opacity-50"></div>
       )}
       {/*Modal*/}
       <div

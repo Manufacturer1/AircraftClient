@@ -25,8 +25,12 @@ const BenefitContainer = ({ benefit }) => {
             src={flightArrivalIcon}
             alt="flight arrival icon"
           />
-          <span className="text-[#FF912BFF] font-normal text-base">
+          <span className="text-[#FF912BFF] text-base font-medium flex items-center gap-4">
             {benefit.classType}
+            <div className="w-1.5 h-1.5 bg-[#FF912BFF] rounded-full"></div>
+            <span className="text-[#FF912BFF] font-normal text-base">
+              {benefit.flightNumber}
+            </span>
           </span>
         </div>
         <div className="flex items-center">
@@ -39,6 +43,7 @@ const BenefitContainer = ({ benefit }) => {
             {benefit.finalPrice} / pax
           </span>
         </div>
+
         <div className="flex items-center gap-3">
           <div className="text-[#0EA776FF] w-6 h-6">
             {benefit.tripType === "OneWay" ? (

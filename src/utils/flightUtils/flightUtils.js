@@ -116,5 +116,14 @@ export const formatAmenityIcon = (icon) =>{
 
 export const calculateDiscountFromPercentage = (price, percentage) => {
   if (!price || !percentage) return 0;
-  return (price * percentage) / 100;
+  return ((price * percentage) / 100).toFixed(2);
 };
+
+export const calculateLowAvailabilityFee = (price, availableSeats, totalSeats) => {
+  if (!price) return 0;
+  return availableSeats > (totalSeats * 0.2)
+    ? 0
+    : Number((price * 0.2).toFixed(2));
+};
+
+

@@ -3,7 +3,10 @@ import PriceDetails from "./priceDetailsComponent";
 import BaggagePriceContainer from "./baggagePriceContainer";
 import { getAllDiscounts } from "../../../../services/discountService";
 import { useEffect, useState } from "react";
-import { calculateDiscountFromPercentage } from "../../../../utils/flightUtils/flightUtils";
+import {
+  calculateDiscountFromPercentage,
+  calculateLowAvailabilityFee,
+} from "../../../../utils/flightUtils/flightUtils";
 
 const FlightBenefits = ({ flightDetails }) => {
   const [discounts, setDiscounts] = useState([]);
@@ -28,18 +31,39 @@ const FlightBenefits = ({ flightDetails }) => {
     fetchDiscounts();
   }, []);
 
+  const availabilityFees = flightDetails.flights.map((flight) => ({
+    active: flight.availableSeats < flight.totalSeats * 0.2,
+    feeAmount: calculateLowAvailabilityFee(
+      flight.basePrice,
+      flight.availableSeats,
+      flight.totalSeats
+    ),
+  }));
+
+  const totalActiveFeeAmount = availabilityFees
+    .filter((fee) => fee.active)
+    .reduce((acc, fee) => acc + (Number(fee.feeAmount) || 0), 0);
+
+  const totalPriceWithFees = flightDetails.flightPrice + totalActiveFeeAmount;
+
+  // Apply discount to totalPriceWithFees instead of just fees
+  const discountObjects = discounts.map((discount) => ({
+    isActive: discount.isActive,
+    discountName: discount.name,
+    discountAmount: calculateDiscountFromPercentage(
+      totalPriceWithFees,
+      discount.percentage
+    ),
+  }));
+
   const priceDetails = {
     tax: true,
     totalPrice: flightDetails.flightPrice,
-    discounts: discounts.map((discount) => ({
-      discountName: discount.name,
-      discountAmount: calculateDiscountFromPercentage(
-        flightDetails.flightPrice,
-        discount.percentage
-      ),
-    })),
+    availabilityFees,
+    discounts: discountObjects,
     adultFee: flightDetails.flightPrice,
   };
+
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-neutral-900 font-semibold text-lg">Conditions</h3>
@@ -61,7 +85,10 @@ const FlightBenefits = ({ flightDetails }) => {
       {/*Price details */}
       <h3 className="text-neutral-900 font-semibold text-lg">Price details</h3>
       <div>
-        <PriceDetails priceDetails={priceDetails} />
+        <PriceDetails
+          priceDetails={priceDetails}
+          flightDetails={flightDetails}
+        />
       </div>
       <h3 className="text-neutral-900 font-semibold text-lg">
         Baggage Details

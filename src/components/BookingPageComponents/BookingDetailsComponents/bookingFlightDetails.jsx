@@ -47,8 +47,12 @@ const BookingFlightDetails = ({ bookingFlightDetails }) => {
           </span>
           <div className="flex items-center gap-2 mb-4">
             <img src={flightArrivalIcon} />
-            <span className="text-[#FF912BFF]">
+            <span className="text-[#FF912BFF] text-base font-medium flex items-center gap-4">
               {bookingFlightDetails.classType}
+              <div className="w-1.5 h-1.5 bg-[#FF912BFF] rounded-full"></div>
+              <span className="text-[#FF912BFF] font-normal text-base">
+                {bookingFlightDetails.flightNumber}
+              </span>
             </span>
           </div>
           <div className="flex flex-col gap-1">

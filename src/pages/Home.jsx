@@ -317,16 +317,10 @@ const Home = () => {
               />
               <hr className="w-[1px] h-7 bg-gray-400 border-0 transform rotate-180 block" />
 
-              <DropDown
+              <Tag
                 icon={accountIcon}
-                arrowIcon={arrowIcon}
-                bgColor="bg-[#F0F0FFFF]"
                 title={searchData.passengerCount.toString()}
                 textColor="text-blue-600"
-                options={["1", "2", "3", "4", "5"]}
-                hover="hover:bg-[#CECEFFFF]"
-                hoverActive="hover:active:bg-[#ADADFFFF]"
-                onSelect={handlePassengerCountChange}
               />
 
               <DropDown

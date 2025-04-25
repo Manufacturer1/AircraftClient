@@ -2,6 +2,10 @@ import ticketIcon from "../../../images/ticketContainer.svg";
 import workBagIcon from "../../../images/workBag.svg";
 import AirlineIcon from "../../generalUseComponents/airlineIconComponent";
 import flightArrivalIcon from "../../../images/flightArrival.svg";
+import {
+  getAirlineBgColor,
+  getAirlineIcon,
+} from "../../../utils/flightUtils/flightUtils";
 
 const Ticket = ({ ticketInfo }) => {
   const parseDay = (date) => {
@@ -42,39 +46,53 @@ const Ticket = ({ ticketInfo }) => {
     return `${day} ${month.slice(0, 3)}, ${year}`;
   };
   const parseTime = (time) => {
-    const [timePart, period] = time.split(" ");
-    const [hours, minutes] = timePart.split(":").map(Number);
+    const [hours, minutes, seconds] = time.split(":");
 
-    if (period === "PM" && hours !== 12) {
-      return (hours + 12) * 60 + minutes;
-    }
-    if (period === "AM" && hours === 12) {
-      return minutes;
-    }
-    return hours * 60 + minutes;
+    return `${hours}:${minutes}`;
   };
 
-  const calculateDuration = (departure, arrival) => {
-    const depMinutes = parseTime(departure);
-    const arrMinutes = parseTime(arrival);
+  const parseCheckInDate = (dateString) => {
+    const date = new Date(dateString);
 
-    let diff = arrMinutes - depMinutes;
-    if (diff < 0) diff += 24 * 60;
+    // Get day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+    const day = date.getDate();
+    const dayWithSuffix =
+      day +
+      (day % 10 === 1 && day !== 11
+        ? "st"
+        : day % 10 === 2 && day !== 12
+        ? "nd"
+        : day % 10 === 3 && day !== 13
+        ? "rd"
+        : "th");
 
-    const hours = Math.floor(diff / 60);
-    const minutes = diff % 60;
-    return `${hours}h${minutes}m`;
+    // Get short month name
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[date.getMonth()];
+
+    // Get year
+    const year = date.getFullYear();
+
+    // Get time in 24-hour format
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const time = `${hours}:${minutes}`;
+
+    return `${dayWithSuffix} ${month} ${year} at ${time}`;
   };
-
-  const formattedDepartureDate = ticketInfo.flightDepartureDate
-    .split("/")
-    .reverse()
-    .join("-");
-
-  const formattedArrivalDate = ticketInfo.flightArrivalDate
-    .split("/")
-    .reverse()
-    .join("-");
 
   return (
     <div>
@@ -84,26 +102,30 @@ const Ticket = ({ ticketInfo }) => {
         {/*Airlince Icon and name*/}
         <div className="absolute top-[8%] left-[3%]">
           <AirlineIcon
-            airlineBgColor={ticketInfo.airlineBgColor}
-            airlineIcon={ticketInfo.airlineIcon}
-            airlineName={ticketInfo.airlineName}
+            airlineBgColor={getAirlineBgColor(
+              ticketInfo.airline.airlineBgColor
+            )}
+            airlineIcon={getAirlineIcon(ticketInfo.airline.airlineImageUrl)}
+            airlineName={ticketInfo.airline.name}
           />
         </div>
         {/*Bags info*/}
         <div className="flex gap-2 items-center absolute top-[8%] left-[52%]">
           <img src={workBagIcon} />
           <div className="flex items-center justify-center bg-[#DEE1E6FF] px-3 py-2 text-neutral-800 text-sm rounded-[30px]">
-            {ticketInfo.bags}x{ticketInfo.bagCapacity}kg
+            {ticketInfo.baggage.freeCheckedBags}x
+            {ticketInfo.baggage.checkedWeightLimitKg}kg
           </div>
           <div className="flex items-center justify-center bg-[#DEE1E6FF] px-3 py-2 text-neutral-800 text-sm rounded-[30px]">
-            {ticketInfo.cabinBags}x{ticketInfo.cabinBagsCapacity}kg
+            {ticketInfo.baggage.freeCabinBags}x
+            {ticketInfo.baggage.cabinWeightLimitKg}kg
           </div>
         </div>
         {/*Passenger name*/}
         <div className="flex gap-1 absolute top-[22%] left-[3%]">
           <span className="text-neutral-500">Passenger:</span>
           <span className="text-neutral-900 font-bold uppercase">
-            {ticketInfo.passengerName}
+            {ticketInfo.passengerName} {ticketInfo.passengerSurname}
           </span>
         </div>
         {/*Plane class type*/}
@@ -112,25 +134,25 @@ const Ticket = ({ ticketInfo }) => {
           <span className="text-[#FF912BFF]">{ticketInfo.classType}</span>
         </div>
         {/*Flight details*/}
-        <div className="flex gap-24 items-start absolute top-[42%] left-[3%]">
+        <div className="flex gap-36 items-start absolute top-[42%] left-[3%]">
           {/*Flight departure info */}
           <div className="flex flex-col gap-1">
             <span className="text-[#2424FFFF] text-3xl font-medium">
-              {ticketInfo.flightDepartureTime}
+              {parseTime(ticketInfo.departureTime)}
             </span>
-            <span className="text-neutral-800">{ticketInfo.departureCity}</span>
+            <span className="text-neutral-800">{ticketInfo.origin}</span>
             <span className="text-neutral-500">
-              {getFullFlightDate(formattedDepartureDate)}
+              {getFullFlightDate(ticketInfo.departureDate)}
             </span>
           </div>
           {/*Flight arrival info */}
           <div className="flex flex-col gap-1">
             <span className="text-[#2424FFFF] text-3xl font-medium">
-              {ticketInfo.flightArrivalTime}
+              {parseTime(ticketInfo.returnTime)}
             </span>
-            <span className="text-neutral-800">{ticketInfo.arrivalCity}</span>
+            <span className="text-neutral-800">{ticketInfo.destination}</span>
             <span className="text-neutral-500">
-              {getFullFlightDate(formattedArrivalDate)}
+              {getFullFlightDate(ticketInfo.arrivalDate)}
             </span>
           </div>
         </div>
@@ -159,19 +181,22 @@ const Ticket = ({ ticketInfo }) => {
                 <path d="M16.24 7.75A5.974 5.974 0 0 0 12 5.99v6l-4.24 4.24c2.34 2.34 6.14 2.34 8.49 0a5.99 5.99 0 0 0-.01-8.48zM12 1.99c-5.52 0-10 4.48-10 10s4.48 10 10 10s10-4.48 10-10s-4.48-10-10-10zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8z" />
               </svg>
             </div>
-            <span className="text-neutral-800">
+            {/* <span className="text-neutral-800">
               {calculateDuration(
                 ticketInfo.flightDepartureTime,
                 ticketInfo.flightArrivalTime
               )}
-            </span>
+            </span> */}
+            <span className="text-neutral-800">{ticketInfo.durationTime}</span>
           </div>
         </div>
         {/*Check in time and date*/}
         <div className="flex gap-56 absolute top-[90%] left-[3%]">
           <p className="text-sm text-neutral-800">
             Check-in:{" "}
-            <span className="font-semibold">{ticketInfo.checkInDate}</span>
+            <span className="font-semibold">
+              {parseCheckInDate(ticketInfo.checkInDate)}
+            </span>
           </p>
           <p className="text-sm text-neutral-500">
             *All time displayed are local

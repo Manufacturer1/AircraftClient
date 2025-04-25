@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, use } from "react";
 import CustomStepper from "../components/BookingPageComponents/steeperComponent.jsx";
 import BookingPriceDetails from "../components/BookingPageComponents/bookingPriceDetailsComponent.jsx";
 import BookingFlightContainer from "../components/BookingPageComponents/BookingDetailsComponents/bookingFlightContainer.jsx";
@@ -7,7 +7,10 @@ import TicketStep from "./ticketGenerationStep";
 import { useLocation } from "react-router-dom";
 import NotFound from "../components/generalUseComponents/notFound.jsx";
 import { getAllDiscounts } from "../services/discountService.js";
-import { calculateDiscountFromPercentage } from "../utils/flightUtils/flightUtils.js";
+import {
+  calculateDiscountFromPercentage,
+  calculateLowAvailabilityFee,
+} from "../utils/flightUtils/flightUtils.js";
 import { validateForm } from "../utils/validationUtils/validationUtils.js";
 import PaymentForm from "../components/paymentForm.jsx";
 import { loadStripe } from "@stripe/stripe-js";
@@ -37,6 +40,7 @@ const BookingPage = () => {
   const [paymentErrorMessage, setPaymentErrorMessage] = useState("");
   const [paymentIntentId, setPaymentIntentId] = useState("");
   const [bookingError, setBookingError] = useState("");
+  const [tickets, setTickets] = useState([]);
 
   const [passengerData, setPassengerData] = useState({
     name: "",
@@ -111,24 +115,26 @@ const BookingPage = () => {
     const getCurrentState = async () => {
       try {
         const response = await getCurrentSavedState();
-        const formatDateForInput = (dateString) => {
-          if (!dateString) return "";
-          const date = new Date(dateString);
-          return date.toISOString().split("T")[0];
+        const formatDate = (date) => {
+          const [d, _] = date.split("T");
+          return d;
         };
+
         const data = {
           name: response.passenger.name,
           surname: response.passenger.surname,
-          birthday: formatDateForInput(response.passenger?.birthDay),
+          birthday: formatDate(response.passenger?.birthDay),
           nationality: response.passenger.nationality,
           passportNumber: response.passport.passportNumber,
           country: response.passport.country,
-          passportExpiryDate: formatDateForInput(response.passport?.expiryDate),
+          passportExpiryDate: formatDate(response.passport?.expiryDate),
           contactName: response.contactDetails.name,
           contactSurname: response.contactDetails.surname,
           email: response.contactDetails.email,
           phoneNumber: response.contactDetails.phoneNumber,
         };
+
+        console.log(response);
         if (response.paymentIntentId) {
           setPaymentIntentId(response.paymentIntentId);
         }
@@ -143,11 +149,12 @@ const BookingPage = () => {
 
   const saveState = async (paymentIntentId) => {
     try {
-      const _ = await saveBookingState(passengerData, paymentIntentId);
+      await saveBookingState(passengerData, paymentIntentId);
     } catch (error) {
       console.error(error.message);
     }
   };
+
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
     setBookingError("");
@@ -162,7 +169,10 @@ const BookingPage = () => {
         passengerNumberSelected: parseInt(flightDetails.passengerNumber),
         itineraryId: parseInt(flightDetails.itineraryId),
       };
-      const _ = await bookFlight(payload);
+      const response = await bookFlight(payload);
+      if (response.success) {
+        setTickets(response.tickets);
+      }
       return true;
     } catch (error) {
       console.error(error.message);
@@ -183,9 +193,9 @@ const BookingPage = () => {
       if (activeStep === 0) {
         isStepValid = handleBookingStepSubmit();
       } else if (activeStep === 1) {
-        await saveState(paymentIntentId);
         isStepValid = handlePaymentStep();
         isStepValid = await handleBookingSubmit(e);
+        await saveState(paymentIntentId);
       }
 
       if (isStepValid) {
@@ -229,16 +239,35 @@ const BookingPage = () => {
       />
     );
   }
+  const availabilityFees = flightDetails.flights.map((flight) => ({
+    active: flight.availableSeats < flight.totalSeats * 0.2,
+    feeAmount: calculateLowAvailabilityFee(
+      flight.basePrice,
+      flight.availableSeats,
+      flight.totalSeats
+    ),
+  }));
+
+  const totalActiveFeeAmount = availabilityFees
+    .filter((fee) => fee.active)
+    .reduce((acc, fee) => acc + (Number(fee.feeAmount) || 0), 0);
+
+  const totalPriceWithFees = flightDetails.flightPrice + totalActiveFeeAmount;
+
+  const discountObjects = discounts.map((discount) => ({
+    isActive: discount.isActive,
+    discountName: discount.name,
+    discountAmount: calculateDiscountFromPercentage(
+      totalPriceWithFees,
+      discount.percentage
+    ),
+  }));
+
   const priceDetails = {
     tax: true,
     totalPrice: flightDetails.flightPrice,
-    discounts: discounts.map((discount) => ({
-      discountName: discount.name,
-      discountAmount: calculateDiscountFromPercentage(
-        flightDetails.flightPrice,
-        discount.percentage
-      ),
-    })),
+    availabilityFees,
+    discounts: discountObjects,
     adultFee: flightDetails.flightPrice,
   };
 
@@ -273,7 +302,6 @@ const BookingPage = () => {
           console.error("Failed to clear session:", error);
         }
       };
-      clearSessionData();
     }
   }, [activeStep]);
 
@@ -305,18 +333,19 @@ const BookingPage = () => {
             </Elements>
           )}
           {/*Ticket generation step*/}
-          {activeStep === 2 && paymentIntentId ? (
-            <TicketStep />
-          ) : (
-            activeStep === 2 &&
-            !paymentIntentId && (
-              <NotFound
-                errorMessage={
-                  "You need to get through booking wizard in order to see your ticket."
-                }
-              />
-            )
-          )}
+          {
+            activeStep === 2 && <TicketStep tickets={tickets} />
+            // ) : (
+            //   activeStep === 2 &&
+            //   !paymentIntentId && (
+            //     <NotFound
+            //       errorMessage={
+            //         "You need to get through booking wizard in order to see your ticket."
+            //       }
+            //     />
+            //   )
+            // )
+          }
 
           {bookingError && (
             <div className="my-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
@@ -382,20 +411,21 @@ const BookingPage = () => {
               </button>
             </div>
           ) : (
-            paymentIntentId && (
-              <button
-                className="flex items-center justify-center w-full bg-[#11D396FF] 
+            <button
+              className="flex items-center justify-center w-full bg-[#11D396FF] 
                 text-white py-2 rounded-[4px] font-medium
                 hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF]
                 transition-all duration-200"
-              >
-                Send to my e-mail
-              </button>
-            )
+            >
+              Send to my e-mail
+            </button>
           )}
         </div>
         <div className="basis-[30%] flex flex-col gap-5">
-          <BookingPriceDetails priceDetails={priceDetails} />
+          <BookingPriceDetails
+            priceDetails={priceDetails}
+            flightDetails={flightDetails}
+          />
           <BookingFlightContainer bookingFlightDetails={flightDetails} />
         </div>
       </section>
