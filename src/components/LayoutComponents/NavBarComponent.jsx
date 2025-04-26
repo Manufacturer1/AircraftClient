@@ -5,31 +5,27 @@ import LoginModal from "./loginModalComponent";
 import { useAuth } from "../../context/authContext";
 import logo from "../../images/logo.svg";
 import globIcon from "../../images/globe.png";
-import bell from "../../images/bell.svg";
+import NotificationDropDown from "./notificationDropDown";
+import { usePassenger } from "../../context/passengerContext";
 
 const NavBar = () => {
   const [openLoginModal, setLoginModalOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const { isAuthenticated, user, logout } = useAuth();
-
+  const [showNotifications, setShowNotifications] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  const { isAuthenticated, user, logout } = useAuth();
+  const { notifications } = usePassenger();
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-
+      setIsVisible(currentScrollY <= lastScrollY || currentScrollY <= 50);
       setLastScrollY(currentScrollY);
     };
 
     window.addEventListener("scroll", handleScroll);
-
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
@@ -58,10 +54,12 @@ const NavBar = () => {
             <button className="p-1 rounded-full hover:bg-gray-100 transition-colors">
               <img className="w-5 h-5" src={globIcon} alt="Language" />
             </button>
-            <button className="p-1 rounded-full hover:bg-gray-100 transition-colors relative">
-              <img className="w-5 h-5" src={bell} alt="Notifications" />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+
+            <NotificationDropDown
+              showNotifications={showNotifications}
+              setShowNotifications={setShowNotifications}
+              notifications={notifications}
+            />
 
             {isAuthenticated ? (
               <div className="relative">
@@ -85,6 +83,20 @@ const NavBar = () => {
 
                 {showUserMenu && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/bookings"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      My Bookings
+                    </Link>
                     <button
                       onClick={() => {
                         logout();

@@ -7,6 +7,9 @@ import TicketStep from "./ticketGenerationStep";
 import { useLocation } from "react-router-dom";
 import NotFound from "../components/generalUseComponents/notFound.jsx";
 import { getAllDiscounts } from "../services/discountService.js";
+import ButtonLoadinSpinner from "../components/generalUseComponents/buttonLoadingSpinner.jsx";
+import { toast } from "react-toastify";
+
 import {
   calculateDiscountFromPercentage,
   calculateLowAvailabilityFee,
@@ -26,6 +29,8 @@ import {
   clearSession,
   getTicketByPaymentIntentId,
 } from "../services/bookingService.js";
+import { sendNotification } from "../services/notificationService.js";
+import { usePassenger } from "../context/passengerContext.jsx";
 
 const BookingPage = () => {
   const [activeStep, setActiveStep] = useState(0);
@@ -44,6 +49,8 @@ const BookingPage = () => {
   const [tickets, setTickets] = useState([]);
   const [ticketError, setTicketError] = useState("");
   const [loadingInitialState, setLoadingInitialState] = useState(true);
+  const [loadingEmail, setLoadingEmail] = useState(false);
+  const { setPassengerEmail } = usePassenger();
 
   const [passengerData, setPassengerData] = useState({
     name: "",
@@ -136,8 +143,11 @@ const BookingPage = () => {
           email: response.contactDetails.email,
           phoneNumber: response.contactDetails.phoneNumber,
         };
-        console.log(response);
+
         setActiveStep(response.activeStep || 0);
+
+        setPassengerEmail(data.email);
+
         if (response.paymentIntentId) {
           setPaymentIntentId(response.paymentIntentId);
         }
@@ -370,6 +380,34 @@ const BookingPage = () => {
     return () => clearTimeout(timer);
   }, [activeStep, paymentIntentId]);
 
+  const sendNotificationEmail = async () => {
+    if (!tickets || ticketError) {
+      return;
+    }
+    setLoadingEmail(true);
+
+    try {
+      const response = await sendNotification(tickets[0].bookingId);
+      await clearSessionData();
+      console.log(
+        `Reponse state: ${response.flag}, Response message: ${response.message}`
+      );
+      if (response.flag) {
+        toast.success("Email sent successfully!");
+      } else {
+        toast.error("Failed to send notifications: " + response.message);
+      }
+    } catch (error) {
+      console.error(error.message || "Failed to send notification");
+    } finally {
+      setLoadingEmail(false);
+    }
+  };
+
+  if (!(paymentIntentId || !paymentDone) && activeStep === 2) {
+    return <NotFound errorMessage={"You have to pass the booking wizard."} />;
+  }
+
   if (loadingInitialState) {
     return (
       <section className="px-20 py-5 mb-10">
@@ -461,26 +499,7 @@ const BookingPage = () => {
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
-                    <svg
-                      className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v8H4z"
-                      ></path>
-                    </svg>
+                    <ButtonLoadinSpinner />
                     Loading...
                   </div>
                 ) : activeStep === 1 ? (
@@ -492,13 +511,24 @@ const BookingPage = () => {
             </div>
           ) : (
             <button
-              onClick={clearSessionData}
-              className="flex items-center justify-center w-full bg-[#11D396FF] 
-                text-white py-2 rounded-[4px] font-medium
-                hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF]
-                transition-all duration-200"
+              onClick={sendNotificationEmail}
+              disabled={loadingEmail}
+              className={`flex items-center justify-center w-full h-10
+              ${
+                loadingEmail
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#11D396FF] text-white py-2 rounded-[4px] font-medium hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] transition-all duration-200"
+              }
+            `}
             >
-              Send to my e-mail
+              {loadingEmail ? (
+                <div className="flex items-center gap-2">
+                  <ButtonLoadinSpinner />
+                  Sending Email...
+                </div>
+              ) : (
+                "Send to my e-mail"
+              )}
             </button>
           )}
         </div>
