@@ -1,8 +1,9 @@
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_BOOKING_PATH_URL;
+const TICKET_API_URL = import.meta.env.VITE_TICKET_PATH_URL;
 
-export const saveBookingState = async (bookingState,paymentIntentId) =>{
+export const saveBookingState = async (bookingState,paymentIntentId,activeStep) =>{
     try{
         const payload = {
             passenger: {
@@ -22,7 +23,8 @@ export const saveBookingState = async (bookingState,paymentIntentId) =>{
                 email: bookingState?.email || "",
                 phoneNumber: bookingState?.phoneNumber || ""
             },
-            paymentIntentId: paymentIntentId
+            paymentIntentId: paymentIntentId,
+            activeStep:activeStep
         };
 
         const response = await axios.post(`${API_URL}/save-state`, payload, { 
@@ -69,6 +71,36 @@ export const bookFlight = async (data) => {
 
         return response.data;
     } catch (error) {
+        if (error.response) {
+          
+            throw new Error(error.response.data); 
+        } else if (error.request) {
+            
+            throw new Error("No response from server.");
+        } else {
+           
+            throw new Error("An unexpected error occurred.");
+        }
+    }
+};
+
+export const getTicketByPaymentIntentId = async (paymentIntentId) =>{
+    if (!paymentIntentId || typeof paymentIntentId !== 'string') {
+        throw new Error('Invalid paymentIntentId');
+    }
+
+    try{
+        const response = await axios.get(
+            `${TICKET_API_URL}/get-ticket-by-payment/${paymentIntentId}`);
+      
+          // Validate response structure
+          if (!response.data) {
+            throw new Error('No data received from server');
+          }
+      
+          return response.data;
+    }
+    catch(error){
         if (error.response) {
           
             throw new Error(error.response.data); 

@@ -24,6 +24,7 @@ import {
   getCurrentSavedState,
   bookFlight,
   clearSession,
+  getTicketByPaymentIntentId,
 } from "../services/bookingService.js";
 
 const BookingPage = () => {
@@ -41,6 +42,8 @@ const BookingPage = () => {
   const [paymentIntentId, setPaymentIntentId] = useState("");
   const [bookingError, setBookingError] = useState("");
   const [tickets, setTickets] = useState([]);
+  const [ticketError, setTicketError] = useState("");
+  const [loadingInitialState, setLoadingInitialState] = useState(true);
 
   const [passengerData, setPassengerData] = useState({
     name: "",
@@ -133,8 +136,8 @@ const BookingPage = () => {
           email: response.contactDetails.email,
           phoneNumber: response.contactDetails.phoneNumber,
         };
-
         console.log(response);
+        setActiveStep(response.activeStep || 0);
         if (response.paymentIntentId) {
           setPaymentIntentId(response.paymentIntentId);
         }
@@ -142,16 +145,20 @@ const BookingPage = () => {
         setPassengerData(data);
       } catch (error) {
         console.log(error);
+      } finally {
+        setLoadingInitialState(false);
       }
     };
     getCurrentState();
   }, [activeStep]);
 
-  const saveState = async (paymentIntentId) => {
+  const saveState = async (paymentIntentId, activeStep) => {
     try {
-      await saveBookingState(passengerData, paymentIntentId);
+      await saveBookingState(passengerData, paymentIntentId, activeStep);
     } catch (error) {
       console.error(error.message);
+    } finally {
+      setLoadingInitialState(false);
     }
   };
 
@@ -183,37 +190,74 @@ const BookingPage = () => {
 
   const handleNextStep = async (e) => {
     if (loading || activeStep >= 2) return;
+
+    console.log("Current activeStep:", activeStep);
     setBookingError("");
     setPaymentErrorMessage("");
     setLoading(true);
 
-    setTimeout(async () => {
+    try {
       let isStepValid = false;
+
+      // Small delay to ensure loading state is visible
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       if (activeStep === 0) {
         isStepValid = handleBookingStepSubmit();
-      } else if (activeStep === 1) {
+        if (isStepValid) {
+          console.log("Step 0 validated, saving state...");
+          await saveState(paymentIntentId, 1);
+
+          // Delay before UI update to ensure state is saved
+          await new Promise((resolve) => setTimeout(resolve, 200));
+
+          setActiveStep(1);
+          console.log("Advanced to step 1");
+        }
+      }
+
+      // STEP 1: Payment and Booking Submission
+      else if (activeStep === 1) {
+        console.log("Validating payment...");
         isStepValid = handlePaymentStep();
-        isStepValid = await handleBookingSubmit(e);
-        await saveState(paymentIntentId);
+
+        if (isStepValid) {
+          console.log("Payment valid, submitting booking...");
+          isStepValid = await handleBookingSubmit(e);
+
+          if (isStepValid) {
+            console.log("Booking submitted, saving state...");
+            await saveState(paymentIntentId, 2);
+
+            // Delay before final transition
+            await new Promise((resolve) => setTimeout(resolve, 300));
+
+            setActiveStep(2);
+            console.log("Advanced to step 2");
+          }
+        }
       }
 
       if (isStepValid) {
-        setActiveStep((prev) => prev + 1);
-
-        setTimeout(() => {
-          stepperRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-        }, 0);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        stepperRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }
-
+    } catch (error) {
+      console.error("Error in handleNextStep:", error);
+      // Delay before showing error to prevent flickering
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      setBookingError(error.message || "An error occurred");
+    } finally {
+      // Small delay before releasing loading state
+      await new Promise((resolve) => setTimeout(resolve, 100));
       setLoading(false);
-    }, 1000);
+    }
   };
-
-  const handleBackStep = () => {
+  const handleBackStep = async () => {
+    await saveState(paymentIntentId, activeStep - 1);
     setActiveStep((prev) => {
       if (prev > 0) {
         return prev - 1;
@@ -240,7 +284,7 @@ const BookingPage = () => {
     );
   }
   const availabilityFees = flightDetails.flights.map((flight) => ({
-    active: flight.availableSeats < flight.totalSeats * 0.2,
+    active: flight.availableSeats <= flight.totalSeats * 0.2,
     feeAmount: calculateLowAvailabilityFee(
       flight.basePrice,
       flight.availableSeats,
@@ -288,23 +332,54 @@ const BookingPage = () => {
   const handlePaymentSuccess = async (success, paymentId) => {
     setPaymentDone(success);
     setPaymentIntentId(paymentId);
-    await saveState(paymentId);
+    await saveState(paymentId, activeStep);
     clearStoredPaymentIntent();
+  };
+  const clearSessionData = async () => {
+    try {
+      await clearSession();
+      console.log("Session cleared successfully");
+    } catch (error) {
+      console.error("Failed to clear session:", error);
+    }
   };
 
   useEffect(() => {
-    if (activeStep === 2) {
-      const clearSessionData = async () => {
-        try {
-          await clearSession();
-          console.log("Session cleared successfully");
-        } catch (error) {
-          console.error("Failed to clear session:", error);
-        }
-      };
-    }
-  }, [activeStep]);
+    if (activeStep !== 2) return;
 
+    const fetchTickets = async () => {
+      if (!paymentIntentId) {
+        console.warn("No paymentIntentId available");
+        return;
+      }
+
+      try {
+        const data = await getTicketByPaymentIntentId(paymentIntentId);
+        if (data) {
+          setTickets(data);
+        } else {
+          setTicketError("No ticket data received");
+        }
+      } catch (err) {
+        setTicketError(err.message || "Ticket fetch failed");
+      }
+    };
+
+    const timer = setTimeout(fetchTickets, 300);
+
+    return () => clearTimeout(timer);
+  }, [activeStep, paymentIntentId]);
+
+  if (loadingInitialState) {
+    return (
+      <section className="px-20 py-5 mb-10">
+        <h2 className="text-neutral-900 text-3xl font-bold mb-2">My booking</h2>
+        <div className="text-center mt-20 text-gray-500">
+          Loading booking data...
+        </div>
+      </section>
+    );
+  }
   return (
     <section ref={stepperRef} className="px-20 py-5 mb-10">
       <h2 className="text-neutral-900 text-3xl font-bold mb-2">My booking</h2>
@@ -333,19 +408,24 @@ const BookingPage = () => {
             </Elements>
           )}
           {/*Ticket generation step*/}
-          {
-            activeStep === 2 && <TicketStep tickets={tickets} />
-            // ) : (
-            //   activeStep === 2 &&
-            //   !paymentIntentId && (
-            //     <NotFound
-            //       errorMessage={
-            //         "You need to get through booking wizard in order to see your ticket."
-            //       }
-            //     />
-            //   )
-            // )
-          }
+          {activeStep === 2 && (
+            <>
+              {ticketError && (
+                <div className="my-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
+                  <p>{ticketError}</p>
+                </div>
+              )}
+              {tickets ? (
+                <TicketStep tickets={tickets} />
+              ) : (
+                <NotFound
+                  errorMessage={
+                    "You need to get through booking wizard in order to see your ticket."
+                  }
+                />
+              )}
+            </>
+          )}
 
           {bookingError && (
             <div className="my-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700">
@@ -412,6 +492,7 @@ const BookingPage = () => {
             </div>
           ) : (
             <button
+              onClick={clearSessionData}
               className="flex items-center justify-center w-full bg-[#11D396FF] 
                 text-white py-2 rounded-[4px] font-medium
                 hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF]
