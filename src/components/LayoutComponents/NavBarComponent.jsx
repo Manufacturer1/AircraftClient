@@ -7,6 +7,7 @@ import logo from "../../images/logo.svg";
 import globIcon from "../../images/globe.png";
 import NotificationDropDown from "./notificationDropDown";
 import { usePassenger } from "../../context/passengerContext";
+import CurrencyDropdown from "./currencyDropDown";
 
 const NavBar = () => {
   const [openLoginModal, setLoginModalOpen] = useState(false);
@@ -17,6 +18,14 @@ const NavBar = () => {
 
   const { isAuthenticated, user, logout } = useAuth();
   const { notifications } = usePassenger();
+
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+
+  const handleCurrencyChange = (currencyCode) => {
+    setSelectedCurrency(currencyCode);
+    // Here you would typically call an API to update the currency preference
+    // or dispatch an action to your state management
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,9 +57,10 @@ const NavBar = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="text-[15px] font-bold text-neutral-900 hover:text-[#0A7956FF] transition-colors">
-              USD
-            </button>
+            <CurrencyDropdown
+              selectedCurrency={selectedCurrency}
+              onCurrencyChange={handleCurrencyChange}
+            />
             <button className="p-1 rounded-full hover:bg-gray-100 transition-colors">
               <img className="w-5 h-5" src={globIcon} alt="Language" />
             </button>

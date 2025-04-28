@@ -3,8 +3,10 @@ import flightArrivalIcon from "../../../images/flightArrival.svg";
 import DateContainer from "./dateContainerComponent";
 import dollarIcon from "../../../images/dollar.svg";
 import { tripTypeToLabel } from "../../../utils/flightUtils/flightUtils";
+import { useCurrency } from "../../../context/currencyContext";
 
 const BookingFlightDetails = ({ bookingFlightDetails }) => {
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
   const parseTime = (timeString) => {
     if (!timeString) return 0;
 
@@ -144,7 +146,11 @@ const BookingFlightDetails = ({ bookingFlightDetails }) => {
           alt="dollar icon for refundable"
         />
         <span className="text-[#0EA776FF] text-base font-medium">
-          {bookingFlightDetails.finalPrice} / pax
+          {formatCurrency(
+            bookingFlightDetails.finalPrice * exchangeRate,
+            toCurrency
+          )}{" "}
+          / pax
         </span>
       </div>
     </div>

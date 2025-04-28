@@ -3,7 +3,7 @@ import iconCloseModal from "../../../images/closeModal.svg";
 import FlightDetails from "./FlightDetailsComponents/flightDetailsComponent";
 import InfoAlert from "./FlightDetailsComponents/infoComponent";
 import FlightBenefits from "./FlightBenefitsComponents/flightBenefitsComponent";
-
+import { useCurrency } from "../../../context/currencyContext";
 import { Link } from "react-router-dom";
 import {
   FlightDetailsOptionIcon,
@@ -22,7 +22,8 @@ const modalOptions = [
 ];
 
 const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
-  console.log(flightDetails);
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
+
   const createFlightDetails = (itinerary, flightInfo) => {
     const { flights, ...rest } = itinerary;
     const { ...flight } = flightInfo;
@@ -147,7 +148,10 @@ const FlightModal = ({ openModal, setModalOpen, flightDetails }) => {
         {/* Price and book button*/}
         <div className="flex justify-between items-center p-4 mt-auto">
           <h2 className="flex items-center gap-1 font-semibold text-2xl text-[#FF912BFF]">
-            ${flightDetails.calculatedPrice}
+            {formatCurrency(
+              flightDetails.calculatedPrice * exchangeRate,
+              toCurrency
+            )}
             <span className="text-neutral-400 text-lg font-normal">/ pax</span>
           </h2>
           <div className="flex items-center gap-4">

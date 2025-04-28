@@ -1,8 +1,10 @@
 import dollarIcon from "../../../../images/dollar.svg";
 import flightArrivalIcon from "../../../../images/flightArrival.svg";
 import { tripTypeToLabel } from "../../../../utils/flightUtils/flightUtils";
+import { useCurrency } from "../../../../context/currencyContext";
 
 const BenefitContainer = ({ benefit }) => {
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
   return (
     <div className="p-4 rounded-[4px] shadow-md bg-white">
       <div className="flex items-center gap-2 mb-3">
@@ -40,7 +42,8 @@ const BenefitContainer = ({ benefit }) => {
             alt="dollar icon for refundable"
           />
           <span className="text-[#0EA776FF] text-base font-medium">
-            {benefit.finalPrice} / pax
+            {formatCurrency(benefit.finalPrice * exchangeRate, toCurrency)} /
+            pax
           </span>
         </div>
 

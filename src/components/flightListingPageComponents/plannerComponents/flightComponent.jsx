@@ -1,8 +1,13 @@
 import bagIcon from "../../../images/bagIcon.svg";
 import flightDepartureIcon from "../../../images/flightDeparture.svg";
 import timeLapseIcon from "../../../images/timeLapseIcon.svg";
+import { useCurrency } from "../../../context/currencyContext";
 
 const FlightComponent = ({ flight, handleModalOpen, onSelect, index }) => {
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
+
+  const displayPrice = flight.calculatedPrice * exchangeRate;
+
   const handleChooseClick = () => {
     handleModalOpen();
     onSelect(index);
@@ -100,7 +105,7 @@ const FlightComponent = ({ flight, handleModalOpen, onSelect, index }) => {
         {/*Fligh Price */}
         <div className="flex flex-col gap-4 mt-4">
           <span className="text-xl font-semibold self-end text-[#FF912BFF] flex items-center gap-2">
-            {flight.calculatedPrice} USD{" "}
+            {formatCurrency(displayPrice, toCurrency)}
             <small className="text-neutral-500 text-base font-normal">
               / pax
             </small>

@@ -42,6 +42,8 @@ import {
   formatAmenityIcon,
 } from "../utils/flightUtils/flightUtils";
 
+import { useCurrency } from "../context/currencyContext";
+
 const FlightList = () => {
   const [openModal, setModalOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -106,6 +108,8 @@ const FlightList = () => {
 
     setSearchParams(newSearchParams);
   };
+
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
 
   const fetchData = async () => {
     try {
@@ -218,7 +222,6 @@ const FlightList = () => {
             amenities: amenities,
           };
         });
-
         return {
           airlineId: itinerary.itinerary.airlineId,
           airlineIcon: getAirlineIcon(airline.airlineImageUrl),
@@ -287,14 +290,16 @@ const FlightList = () => {
           );
           return {
             ...dateItem,
-            price: `${minPrice.toFixed(1)} USD`,
+            price: `${formatCurrency(minPrice * exchangeRate, toCurrency)}`,
             hasFlights: true,
+            rawPrice: minPrice, // Store the raw price for later conversion
           };
         }
         return {
           ...dateItem,
           price: "No Flight",
           hasFlights: false,
+          rawPrice: 0,
         };
       });
 
@@ -304,6 +309,7 @@ const FlightList = () => {
         ...dateItem,
         price: "No Flight",
         hasFlights: false,
+        rawPrice: 0,
       }));
       setSchedule(resetSchedule);
     }
@@ -312,6 +318,21 @@ const FlightList = () => {
     fetchData();
   }, [itineraries]);
 
+  useEffect(() => {
+    const updatedSchedule = schedule.map((dateItem) => {
+      if (dateItem.hasFlights && dateItem.rawPrice) {
+        return {
+          ...dateItem,
+          price: `${formatCurrency(
+            dateItem.rawPrice * exchangeRate,
+            toCurrency
+          )}`,
+        };
+      }
+      return dateItem;
+    });
+    setSchedule(updatedSchedule);
+  }, [exchangeRate, toCurrency]);
   const tripTypeIcon = tripType === "RoundTrip" ? compareArrows : rightArrow;
 
   const handleTripTypeChange = (selectedLabel) => {

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import calendarIcon from "../../../images/calendarIcon.svg";
 import FlightComponent from "../plannerComponents/flightComponent";
 import LoadingSpinner from "../../generalUseComponents/loadingSpinner";

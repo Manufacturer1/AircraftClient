@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { registerUser, loginUser } from "../../services/authService";
 import { useAuth } from "../../context/authContext";
+import { usePassenger } from "../../context/passengerContext";
 
 const LoginModal = ({ openModal, setModalOpen }) => {
   const { login } = useAuth();
@@ -16,6 +17,8 @@ const LoginModal = ({ openModal, setModalOpen }) => {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const modalRef = useRef(null);
+
+  const { setPassengerEmail } = usePassenger();
 
   const handleClickOutside = (event) => {
     if (modalRef.current && !modalRef.current.contains(event.target)) {
@@ -47,6 +50,8 @@ const LoginModal = ({ openModal, setModalOpen }) => {
         login(response.token);
         console.log("Login success:", response);
         setModalOpen(false);
+
+        setPassengerEmail(formData.email);
         setFormData({ fullName: "", email: "", password: "" });
       } else {
         response = await registerUser({

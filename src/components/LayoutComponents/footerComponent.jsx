@@ -29,7 +29,6 @@ const Footer = () => {
             E-flight
           </a>
         </div>
-        <SubscribeField />
       </div>
       <div className="grid grid-cols-3 gap-40">
         {footerInfo.map((item, index) => (

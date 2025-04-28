@@ -1,3 +1,5 @@
+import { useCurrency } from "../../context/currencyContext";
+
 const Card = ({
   cardImg,
   cityName,
@@ -6,6 +8,9 @@ const Card = ({
   timeIcon,
   price,
 }) => {
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
+
+  const displayPrice = price * exchangeRate;
   return (
     <div className="flex bg-white border-[1px] border-[#FFF7F0FF] border-solid shadow-xs rounded-lg">
       <div className="basis-1/2 ">
@@ -37,7 +42,7 @@ const Card = ({
         </div>
 
         <p className="self-end text-lg text-indigo-500 font-semibold">
-          ${price}
+          {formatCurrency(displayPrice, toCurrency)}
         </p>
       </div>
     </div>

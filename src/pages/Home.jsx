@@ -60,8 +60,6 @@ const Home = () => {
     params.append("travelClass", searchData.travelClass);
     params.append("tripType", searchData.tripType);
 
-    console.log(searchData);
-
     navigate(`/flights?${params.toString()}`, {
       state: { results },
     });
@@ -115,14 +113,6 @@ const Home = () => {
     }));
     setShowReturnCalendar(false);
   };
-
-  const handlePassengerCountChange = (value) => {
-    setSearchData((prev) => ({
-      ...prev,
-      passengerCount: parseInt(value),
-    }));
-  };
-
   const handleTravelClassChange = (value) => {
     const serverFormat = labelToTravelClass[value];
     setSearchData((prev) => ({

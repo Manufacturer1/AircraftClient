@@ -4,7 +4,7 @@ import BookingPriceDetails from "../components/BookingPageComponents/bookingPric
 import BookingFlightContainer from "../components/BookingPageComponents/BookingDetailsComponents/bookingFlightContainer.jsx";
 import BookingStep from "./bookingStep";
 import TicketStep from "./ticketGenerationStep";
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import NotFound from "../components/generalUseComponents/notFound.jsx";
 import { getAllDiscounts } from "../services/discountService.js";
 import ButtonLoadinSpinner from "../components/generalUseComponents/buttonLoadingSpinner.jsx";
@@ -51,6 +51,7 @@ const BookingPage = () => {
   const [loadingInitialState, setLoadingInitialState] = useState(true);
   const [loadingEmail, setLoadingEmail] = useState(false);
   const { setPassengerEmail } = usePassenger();
+  const [isEmailSent, setIsEmailSent] = useState(false);
 
   const [passengerData, setPassengerData] = useState({
     name: "",
@@ -381,7 +382,7 @@ const BookingPage = () => {
   }, [activeStep, paymentIntentId]);
 
   const sendNotificationEmail = async () => {
-    if (!tickets || ticketError) {
+    if (!tickets || ticketError || isEmailSent) {
       return;
     }
     setLoadingEmail(true);
@@ -394,6 +395,7 @@ const BookingPage = () => {
       );
       if (response.flag) {
         toast.success("Email sent successfully!");
+        setIsEmailSent(true);
       } else {
         toast.error("Failed to send notifications: " + response.message);
       }
@@ -509,17 +511,17 @@ const BookingPage = () => {
                 )}
               </button>
             </div>
-          ) : (
+          ) : !isEmailSent ? (
             <button
               onClick={sendNotificationEmail}
               disabled={loadingEmail}
               className={`flex items-center justify-center w-full h-10
-              ${
-                loadingEmail
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#11D396FF] text-white py-2 rounded-[4px] font-medium hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] transition-all duration-200"
-              }
-            `}
+                ${
+                  loadingEmail
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#11D396FF] text-white py-2 rounded-[4px] font-medium hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] transition-all duration-200"
+                }
+              `}
             >
               {loadingEmail ? (
                 <div className="flex items-center gap-2">
@@ -530,6 +532,16 @@ const BookingPage = () => {
                 "Send to my e-mail"
               )}
             </button>
+          ) : (
+            <Link
+              to="/"
+              className="flex items-center justify-center w-full h-10
+                bg-[#11D396FF] text-white py-2 rounded-[4px] font-medium 
+                hover:bg-[#0FBE86FF] hover:active:bg-[#0EA776FF] 
+                transition-all duration-200"
+            >
+              Return to Home
+            </Link>
           )}
         </div>
         <div className="basis-[30%] flex flex-col gap-5">

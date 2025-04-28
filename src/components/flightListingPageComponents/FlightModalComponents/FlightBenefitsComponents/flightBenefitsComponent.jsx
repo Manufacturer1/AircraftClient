@@ -8,8 +8,11 @@ import {
   calculateLowAvailabilityFee,
 } from "../../../../utils/flightUtils/flightUtils";
 
+import { useCurrency } from "../../../../context/currencyContext";
+
 const FlightBenefits = ({ flightDetails }) => {
   const [discounts, setDiscounts] = useState([]);
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
   const createFlightDetails = (itinerary, flightInfo) => {
     const { flights, ...rest } = itinerary;
     const { ...flight } = flightInfo;
@@ -33,10 +36,13 @@ const FlightBenefits = ({ flightDetails }) => {
 
   const availabilityFees = flightDetails.flights.map((flight) => ({
     active: flight.availableSeats <= flight.totalSeats * 0.2,
-    feeAmount: calculateLowAvailabilityFee(
-      flight.basePrice,
-      flight.availableSeats,
-      flight.totalSeats
+    feeAmount: formatCurrency(
+      calculateLowAvailabilityFee(
+        flight.basePrice,
+        flight.availableSeats,
+        flight.totalSeats
+      ) * exchangeRate,
+      toCurrency
     ),
   }));
 
@@ -63,7 +69,7 @@ const FlightBenefits = ({ flightDetails }) => {
     discounts: discountObjects,
     adultFee: flightDetails.flightPrice,
   };
-  console.log("price details", priceDetails);
+
   return (
     <div className="flex flex-col gap-3">
       <h3 className="text-neutral-900 font-semibold text-lg">Conditions</h3>

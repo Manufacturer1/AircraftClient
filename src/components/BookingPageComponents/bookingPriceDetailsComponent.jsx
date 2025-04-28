@@ -1,6 +1,8 @@
 import dollarIcon from "../../images/dollar.svg";
+import { useCurrency } from "../../context/currencyContext";
 
 const BookingPriceDetails = ({ priceDetails, flightDetails }) => {
+  const { exchangeRate, toCurrency, formatCurrency } = useCurrency();
   const calculateFinalPrice = () => {
     const baseTotal = Number(priceDetails.totalPrice) || 0;
 
@@ -32,7 +34,7 @@ const BookingPriceDetails = ({ priceDetails, flightDetails }) => {
             Adult basic fee
           </span>
           <span className="font-medium text-base text-neutral-600">
-            ${priceDetails.adultFee}
+            {formatCurrency(priceDetails.adultFee * exchangeRate, toCurrency)}
           </span>
         </div>
         <div className="flex justify-between items-center ">
@@ -46,7 +48,7 @@ const BookingPriceDetails = ({ priceDetails, flightDetails }) => {
             Regular total price
           </span>
           <span className="font-medium text-base text-neutral-600">
-            ${priceDetails.totalPrice}
+            {formatCurrency(priceDetails.totalPrice * exchangeRate, toCurrency)}
           </span>
         </div>
         {priceDetails.availabilityFees.map((fee, index) => {
@@ -59,7 +61,9 @@ const BookingPriceDetails = ({ priceDetails, flightDetails }) => {
                 Low Availability Fee -{" "}
                 {flightDetails.flights[index].flightNumber}
               </span>
-              <span className="font-semibold">+ ${fee.feeAmount}</span>
+              <span className="font-semibold">
+                + ${formatCurrency(fee.feeAmount * exchangeRate, toCurrency)}
+              </span>
             </div>
           ) : (
             ""
@@ -72,7 +76,11 @@ const BookingPriceDetails = ({ priceDetails, flightDetails }) => {
                 {discount.discountName}
               </span>
               <span className="font-semibold text-base text-[#FF912BFF]">
-                - ${discount.discountAmount}
+                -
+                {formatCurrency(
+                  discount.discountAmount * exchangeRate,
+                  toCurrency
+                )}
               </span>
             </div>
           );
@@ -81,7 +89,7 @@ const BookingPriceDetails = ({ priceDetails, flightDetails }) => {
         <div className="flex justify-between items-center ">
           <span className="font-medium text-base text-neutral-600">Total</span>
           <span className="font-semibold text-base text-[#0EA776FF]">
-            ${calculateFinalPrice()}
+            {formatCurrency(calculateFinalPrice() * exchangeRate, toCurrency)}
           </span>
         </div>
       </div>
