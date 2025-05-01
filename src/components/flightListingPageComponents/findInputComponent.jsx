@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Calendar from "../generalUseComponents/Calendar";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, parse } from "date-fns";
 
 const FindInput = ({
   icon,
@@ -52,13 +52,10 @@ const FindInput = ({
   const handleDateSelect = (date) => {
     if (calendarMode === "return") {
       onReturnDateSelect(date);
-      setShowCalendar(false);
     } else {
       onDateSelect(date);
       if (tripType === "RoundTrip" && !returnDate) {
         setCalendarMode("return");
-      } else {
-        setShowCalendar(false);
       }
     }
   };
@@ -143,7 +140,10 @@ const FindInput = ({
           <Calendar
             onDateSelect={handleDateSelect}
             selectedDate={
-              calendarMode === "return" ? returnDate : departureDate
+              calendarMode === "return"
+                ? returnDate && parse(returnDate, "dd/MM/yyyy", new Date())
+                : departureDate &&
+                  parse(departureDate, "dd/MM/yyyy", new Date())
             }
             minDate={
               calendarMode === "return" && departureDate

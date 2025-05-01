@@ -15,29 +15,39 @@ const Planner = ({
   const handleFlightSelect = (index) => {
     onFlightSelect(index);
   };
+
   const handlePlannerSelect = (index) => {
     const date = schedule[index].date;
 
-    if (onDateSelect) {
-      onDateSelect(date);
+    // Only proceed if the date has flights AND we have flight results
+    if (schedule[index].hasFlights) {
+      if (onDateSelect) {
+        onDateSelect(date);
+      }
+      setSelectedIndex(index);
     }
-    setSelectedIndex(index);
   };
+
   return (
     <div>
       {/* Date Tabs */}
       <div className="w-full bg-[#0EA776] h-20 rounded-t-md px-4 mb-4">
         <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr_50px_50px] items-center h-full mb-4">
           {schedule.map((item, index) => {
+            const isSelected =
+              selectedIndex === index &&
+              item.hasFlights &&
+              flightsInfo.length > 0;
+
             return (
               <div
                 key={index}
                 onClick={() => handlePlannerSelect(index)}
                 className={`flex flex-col items-center justify-center mt-auto text-center h-[4.4rem] cursor-pointer transition-all duration-150 ${
-                  selectedIndex === index
+                  isSelected
                     ? "bg-white text-[#0EA776] rounded-t-md font-medium"
                     : "text-[#B0F9E2] font-normal"
-                }`}
+                } ${!item.hasFlights ? "cursor-not-allowed opacity-70" : ""}`}
               >
                 <span>{item.date}</span>
                 <span>{item.price}</span>

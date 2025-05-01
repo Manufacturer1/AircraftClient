@@ -292,7 +292,7 @@ const FlightList = () => {
             ...dateItem,
             price: `${formatCurrency(minPrice * exchangeRate, toCurrency)}`,
             hasFlights: true,
-            rawPrice: minPrice, // Store the raw price for later conversion
+            rawPrice: minPrice,
           };
         }
         return {
@@ -317,6 +317,16 @@ const FlightList = () => {
   useEffect(() => {
     fetchData();
   }, [itineraries]);
+
+  const handleSwapOriginDestination = () => {
+    const newFormData = {
+      ...formData,
+      origin: formData.destination,
+      destination: formData.origin,
+    };
+    setFormData(newFormData);
+    updateSearchParams(newFormData);
+  };
 
   useEffect(() => {
     const updatedSchedule = schedule.map((dateItem) => {
@@ -627,7 +637,12 @@ const FlightList = () => {
                 defaultText={`${formData.origin}`}
                 icon={gpsIcon}
               />
-              <img className="w-10" src={swapArrowsIcon} />
+              <img
+                className="w-10 cursor-pointer"
+                src={swapArrowsIcon}
+                onClick={handleSwapOriginDestination}
+                alt="Swap origin and destination"
+              />
               <FindInput
                 inputName="destination"
                 defaultText={`${formData.destination}`}

@@ -23,6 +23,8 @@ const Calendar = ({
 }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
+  console.log("selected date from calendar: ", selectedDate);
+
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
@@ -117,6 +119,7 @@ const Calendar = ({
         {allDays.map((day, i) => {
           const isCurrentMonth = isSameMonth(day, currentMonth);
           const isSelected = selectedDate && isSameDay(day, selectedDate);
+
           const isDisabled =
             !isCurrentMonth || (minDate && isBefore(day, minDate));
 

@@ -126,4 +126,3 @@ export const calculateLowAvailabilityFee = (price, availableSeats, totalSeats) =
     : Number((price * 0.2).toFixed(2));
 };
 
-
