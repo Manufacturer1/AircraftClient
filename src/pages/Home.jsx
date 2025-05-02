@@ -19,6 +19,9 @@ import orangeCalendarIcon from "../images/orangeCalendarIcon.svg";
 import earthImage from "../images/earth_image.png";
 import pinIcon from "../images/pin.svg";
 import sunriseIcon from "../images/sunriseIcon.svg";
+import airportData from "../data/airports.json";
+import MapComponent from "../components/generalUseComponents/mapComponent";
+import { getAirportById } from "../services/airportService";
 
 import { searchFlights } from "../services/flightService";
 
@@ -29,6 +32,8 @@ const Home = () => {
   const resultsRef = useRef(null);
   const searchSectionRef = useRef(null);
 
+  const [flightAirports, setFlightAirports] = useState([]);
+
   const scrollTimeoutRef = useRef(null);
   const modifySearchTimeoutRef = useRef(null);
   const apiTimeoutRef = useRef(null);
@@ -36,6 +41,12 @@ const Home = () => {
   const [flightResults, setFlightResults] = useState([]);
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
+
+  const [airports, setAirports] = useState([]);
+
+  useEffect(() => {
+    setAirports(airportData);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -186,8 +197,23 @@ const Home = () => {
       ]);
 
       setResults(result);
-      const flights = result.map((item) => item.flights);
-      setFlightResults(flights.flat());
+      const flights = result.map((item) => item.flights).flat();
+      setFlightResults(flights);
+
+      if (flights.length > 0) {
+        const allAirportIds = result.flatMap((itinerary) =>
+          itinerary.flights.flatMap((flight) => [
+            flight.originAirportId,
+            flight.destinationAirportId,
+          ])
+        );
+        const uniqueAirportIds = [...new Set(allAirportIds)];
+        const airportDetails = await Promise.all(
+          uniqueAirportIds.map((id) => getAirportById(id))
+        );
+
+        setFlightAirports(airportDetails.map((item) => item.code));
+      }
 
       setIsSubmit(true);
 
@@ -434,6 +460,15 @@ const Home = () => {
                 </button>
               )}
             </div>
+            {flightResults && flightResults.length > 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4">Flight Route</h2>
+                <MapComponent
+                  routePoints={flightAirports}
+                  airports={airports}
+                />
+              </div>
+            )}
             {loading ? (
               <div className="flex justify-center items-center h-64">
                 <p>Loading flights...</p>
@@ -479,23 +514,25 @@ const Home = () => {
                 {flightResults &&
                   flightResults
                     .filter((_, i) => i < 2)
-                    .map((item, index) => (
-                      <Card
-                        key={index}
-                        cardImg={formatCardImgUrl(item.destinationImageUrl)}
-                        timeIcon={sunriseIcon}
-                        flightDate={formatFlightDate(
-                          item.departureDate,
-                          item.arrivalDate
-                        )}
-                        flightHours={formatFlightDuration(
-                          item.departureTime,
-                          item.arrivalTime
-                        )}
-                        cityName={item.destination}
-                        price={item.basePrice}
-                      />
-                    ))}
+                    .map((item, index) => {
+                      return (
+                        <Card
+                          key={index}
+                          cardImg={formatCardImgUrl(item.destinationImageUrl)}
+                          timeIcon={sunriseIcon}
+                          flightDate={formatFlightDate(
+                            item.departureDate,
+                            item.arrivalDate
+                          )}
+                          flightHours={formatFlightDuration(
+                            item.departureTime,
+                            item.arrivalTime
+                          )}
+                          cityName={item.destination}
+                          price={item.basePrice}
+                        />
+                      );
+                    })}
               </div>
             )}
           </div>

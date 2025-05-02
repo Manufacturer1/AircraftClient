@@ -139,3 +139,11 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 6px !important;
   font-size: 14px !important;
 }
+
+/* Add this to your global CSS */
+.leaflet-container {
+  height: 400px;
+  width: 100%;
+  border-radius: 0.5rem;
+  z-index: 0; /* Ensure it doesn't overlap with other elements */
+}

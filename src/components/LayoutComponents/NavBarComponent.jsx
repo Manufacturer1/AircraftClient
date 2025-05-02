@@ -23,8 +23,6 @@ const NavBar = () => {
 
   const handleCurrencyChange = (currencyCode) => {
     setSelectedCurrency(currencyCode);
-    // Here you would typically call an API to update the currency preference
-    // or dispatch an action to your state management
   };
 
   useEffect(() => {
